@@ -8,6 +8,6 @@ travis-ci = { repository = "mklein994/dynamic_wallpaper" }
 maintenance = { status = "experimental" }
 
 [dependencies]
-spa = "0.1.1"
 chrono = "0.4.4"
 dotenv = "0.13.0"
+spa = "0.1.1"
