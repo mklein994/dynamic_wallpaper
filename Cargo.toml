@@ -4,3 +4,4 @@ version = "0.1.0"
 authors = ["Matthew Klein <mklein994@gmail.com>"]
 
 [dependencies]
+spa = "0.1.1"
