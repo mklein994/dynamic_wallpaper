@@ -3,5 +3,9 @@ name = "dynamic_wallpaper"
 version = "0.1.0"
 authors = ["Matthew Klein <mklein994@gmail.com>"]
 
+[badges]
+travis-ci = { repository = "mklein994/dynamic_wallpaper" }
+maintenance = { status = "experimental" }
+
 [dependencies]
 spa = "0.1.1"
