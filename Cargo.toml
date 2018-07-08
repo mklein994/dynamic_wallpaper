@@ -9,3 +9,4 @@ maintenance = { status = "experimental" }
 
 [dependencies]
 spa = "0.1.1"
+chrono = "0.4.4"

@@ -12,6 +12,7 @@ dependencies = [
 name = "dynamic_wallpaper"
 version = "0.1.0"
 dependencies = [
+ "chrono 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "spa 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
