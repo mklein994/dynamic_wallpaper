@@ -1,13 +1,11 @@
 extern crate chrono;
 extern crate dotenv;
 extern crate spa;
-
-mod error;
+extern crate failure;
 
 use chrono::{DateTime, Utc};
-use error::DwError;
 
-type Result<T> = std::result::Result<T, DwError>;
+type Result<T> = std::result::Result<T, failure::Error>;
 
 #[derive(Debug)]
 pub struct Config {
