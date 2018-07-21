@@ -15,6 +15,9 @@ struct Config {
     pub lat: f64,
     pub lon: f64,
     pub now: DateTime<Local>,
+    sunrise: DateTime<Local>,
+    sunset: DateTime<Local>,
+    duration: chrono::Duration,
 }
 
 impl Config {
@@ -24,19 +27,42 @@ impl Config {
         } else {
             Local::now()
         };
+
         let lat = std::env::var("WALLPAPER_LAT")?.parse::<f64>()?;
         let lon = std::env::var("WALLPAPER_LON")?.parse::<f64>()?;
-        Ok(Config { now, lat, lon })
-    }
 
-    fn get_sunset_sunrise(&self) -> Result<(DateTime<Local>, DateTime<Local>)> {
-        let daylight = spa::calc_sunrise_and_set(self.now.with_timezone(&Utc), self.lat, self.lon)?;
-        match daylight {
-            spa::SunriseAndSet::Daylight(sr, ss) => {
-                Ok((sr.with_timezone(&Local), ss.with_timezone(&Local)))
-            }
-            _ => unimplemented!(),
+        let (sunrise, sunset) = get_sunset_sunrise(now, lat, lon)?;
+
+        let is_daylight = now >= sunrise && now <= sunset;
+
+        let duration = if is_daylight {
+            sunset - sunrise
+        } else {
+            sunrise - sunset
+        };
+
+        Ok(Config {
+            now,
+            lat,
+            lon,
+            sunrise,
+            sunset,
+            duration,
+        })
+    }
+}
+
+fn get_sunset_sunrise(
+    now: DateTime<Local>,
+    lat: f64,
+    lon: f64,
+) -> Result<(DateTime<Local>, DateTime<Local>)> {
+    let daylight = spa::calc_sunrise_and_set(now.with_timezone(&Utc), lat, lon)?;
+    match daylight {
+        spa::SunriseAndSet::Daylight(sr, ss) => {
+            Ok((sr.with_timezone(&Local), ss.with_timezone(&Local)))
         }
+        _ => unimplemented!(),
     }
 }
 
@@ -50,7 +76,7 @@ struct Wallpaper {
 impl Wallpaper {
     fn new() -> Result<Self> {
         use std::env;
-        Ok(Wallpaper {
+        Ok(Self {
             count: env::var("WALLPAPER_COUNT")?.parse::<u8>()?,
             sunrise: env::var("WALLPAPER_SUNRISE")?.parse::<u8>()?,
             sunset: env::var("WALLPAPER_SUNSET")?.parse::<u8>()?,
@@ -66,9 +92,8 @@ pub fn run() -> Result<()> {
     let config = Config::new()?;
     debug!("{:#?}", config);
 
-    let (sunset, sunrise) = config.get_sunset_sunrise()?;
-    info!("sunrise: {}", sunrise);
-    info!("sunset:  {}", sunset);
+    let wallpaper = Wallpaper::new()?;
+    debug!("{:#?}", wallpaper);
 
     Ok(())
 }
