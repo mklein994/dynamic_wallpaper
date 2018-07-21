@@ -40,6 +40,24 @@ impl Config {
     }
 }
 
+#[derive(Debug)]
+struct Wallpaper {
+    count: u8,
+    sunrise: u8,
+    sunset: u8,
+}
+
+impl Wallpaper {
+    fn new() -> Result<Self> {
+        use std::env;
+        Ok(Wallpaper {
+            count: env::var("WALLPAPER_COUNT")?.parse::<u8>()?,
+            sunrise: env::var("WALLPAPER_SUNRISE")?.parse::<u8>()?,
+            sunset: env::var("WALLPAPER_SUNSET")?.parse::<u8>()?,
+        })
+    }
+}
+
 pub fn run() -> Result<()> {
     dotenv::dotenv().ok();
     env_logger::init();
