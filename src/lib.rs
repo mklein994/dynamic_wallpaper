@@ -4,6 +4,7 @@ extern crate failure;
 extern crate spa;
 #[macro_use]
 extern crate log;
+extern crate chrono_humanize;
 extern crate env_logger;
 
 use chrono::{DateTime, Local, Utc};
@@ -95,5 +96,17 @@ pub fn run() -> Result<()> {
     let wallpaper = Wallpaper::new()?;
     debug!("{:#?}", wallpaper);
 
+    let image_step = image_step(config.duration, wallpaper.count);
+    info!("image step: {}", pretty_duration(image_step));
+
     Ok(())
+}
+
+fn image_step(duration: chrono::Duration, image_count: u8) -> chrono::Duration {
+    duration / image_count as i32
+}
+
+fn pretty_duration(duration: chrono::Duration) -> String {
+    use chrono_humanize::{Accuracy, HumanTime, Tense};
+    HumanTime::from(duration).to_text_en(Accuracy::Precise, Tense::Present)
 }
