@@ -100,7 +100,7 @@ impl Wallpaper {
         })
     }
 
-    fn image_count_for_time_period(&self, time: TimePeriod) -> u8 {
+    fn image_count_for_time_period(&self, time: &TimePeriod) -> u8 {
         match time {
             TimePeriod::DayTime => self.sunset - self.sunrise,
             TimePeriod::NightTime => self.count - self.sunset + self.sunrise,
@@ -123,14 +123,14 @@ pub fn run() -> Result<()> {
     let image_step = image_step(config.duration, wallpaper.count);
     info!("image step: {}", pretty_duration(image_step));
 
-    let image_count = wallpaper.image_count_for_time_period(config.time_period);
+    let image_count = wallpaper.image_count_for_time_period(&config.time_period);
     info!("image count: {:?}", image_count);
 
     Ok(())
 }
 
 fn image_step(duration: chrono::Duration, image_count: u8) -> chrono::Duration {
-    duration / image_count as i32
+    duration / i32::from(image_count)
 }
 
 fn pretty_duration(duration: chrono::Duration) -> String {
