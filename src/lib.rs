@@ -8,6 +8,7 @@ extern crate chrono_humanize;
 extern crate env_logger;
 
 use chrono::{DateTime, Local, Utc};
+use std::fmt;
 
 type Result<T> = std::result::Result<T, failure::Error>;
 
@@ -18,6 +19,7 @@ struct Config {
     pub now: DateTime<Local>,
     sunrise: DateTime<Local>,
     sunset: DateTime<Local>,
+    time_period: TimePeriod,
     duration: chrono::Duration,
 }
 
@@ -34,12 +36,10 @@ impl Config {
 
         let (sunrise, sunset) = get_sunset_sunrise(now, lat, lon)?;
 
-        let is_daylight = now >= sunrise && now <= sunset;
-
-        let duration = if is_daylight {
-            sunset - sunrise
+        let (time_period, duration) = if now >= sunrise && now <= sunset {
+            (TimePeriod::DayTime, sunset - sunrise)
         } else {
-            sunrise - sunset
+            (TimePeriod::NightTime, sunset - sunrise)
         };
 
         Ok(Config {
@@ -48,6 +48,7 @@ impl Config {
             lon,
             sunrise,
             sunset,
+            time_period,
             duration,
         })
     }
@@ -74,6 +75,21 @@ struct Wallpaper {
     sunset: u8,
 }
 
+#[derive(Debug)]
+enum TimePeriod {
+    DayTime,
+    NightTime,
+}
+
+impl fmt::Display for TimePeriod {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            TimePeriod::DayTime => write!(f, "DayTime ☀️"),
+            TimePeriod::NightTime => write!(f, "NightTime 🌙"),
+        }
+    }
+}
+
 impl Wallpaper {
     fn new() -> Result<Self> {
         use std::env;
@@ -82,6 +98,13 @@ impl Wallpaper {
             sunrise: env::var("WALLPAPER_SUNRISE")?.parse::<u8>()?,
             sunset: env::var("WALLPAPER_SUNSET")?.parse::<u8>()?,
         })
+    }
+
+    fn image_count_for_time_period(&self, time: TimePeriod) -> u8 {
+        match time {
+            TimePeriod::DayTime => self.sunset - self.sunrise,
+            TimePeriod::NightTime => self.count - self.sunset + self.sunrise,
+        }
     }
 }
 
@@ -92,12 +115,16 @@ pub fn run() -> Result<()> {
 
     let config = Config::new()?;
     debug!("{:#?}", config);
+    info!("{}", config.time_period);
 
     let wallpaper = Wallpaper::new()?;
     debug!("{:#?}", wallpaper);
 
     let image_step = image_step(config.duration, wallpaper.count);
     info!("image step: {}", pretty_duration(image_step));
+
+    let image_count = wallpaper.image_count_for_time_period(config.time_period);
+    info!("image count: {:?}", image_count);
 
     Ok(())
 }
