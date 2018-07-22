@@ -116,6 +116,7 @@ pub fn run() -> Result<()> {
     let config = Config::new()?;
     debug!("{:#?}", config);
     info!("{}", config.time_period);
+    info!("duration: {}", pretty_duration(config.duration));
 
     let wallpaper = Wallpaper::new()?;
     debug!("{:#?}", wallpaper);
