@@ -13,6 +13,17 @@ use std::fmt;
 
 type Result<T> = std::result::Result<T, failure::Error>;
 
+fn init() {
+    env_logger::Builder::from_default_env()
+        .default_format_module_path(false)
+        .default_format_timestamp(false)
+        .init();
+    info!("logging enabled");
+
+    dotenv::dotenv().ok();
+    info!("dotenv ok ✓");
+}
+
 pub fn run() -> Result<()> {
     init();
 
@@ -91,17 +102,6 @@ fn get_index(now: DateTime<Utc>, start: DateTime<Utc>, timer_length: i64) -> i64
     let elapsed_time = now - start;
     debug!("elapsed time: {}", format_duration(elapsed_time));
     elapsed_time.num_nanoseconds().unwrap() / timer_length
-}
-
-fn init() {
-    env_logger::Builder::from_default_env()
-        .default_format_module_path(false)
-        .default_format_timestamp(false)
-        .init();
-    info!("logging enabled");
-
-    dotenv::dotenv().ok();
-    info!("dotenv ok ✓");
 }
 
 #[derive(Debug)]
@@ -267,16 +267,6 @@ enum TimePeriod {
     DayTime,
 }
 
-impl fmt::Display for TimePeriod {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            TimePeriod::AfterSunset => write!(f, "\u{1f306} After Sunset"),
-            TimePeriod::BeforeSunrise => write!(f, "\u{1f305} Before Sunrise"),
-            TimePeriod::DayTime => write!(f, "\u{1f3d9} Daytime"),
-        }
-    }
-}
-
 impl TimePeriod {
     fn new(now: DateTime<Utc>, sunrise: DateTime<Utc>, sunset: DateTime<Utc>) -> Self {
         if now <= sunrise {
@@ -285,6 +275,16 @@ impl TimePeriod {
             TimePeriod::DayTime
         } else {
             TimePeriod::AfterSunset
+        }
+    }
+}
+
+impl fmt::Display for TimePeriod {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            TimePeriod::AfterSunset => write!(f, "\u{1f306} After Sunset"),
+            TimePeriod::BeforeSunrise => write!(f, "\u{1f305} Before Sunrise"),
+            TimePeriod::DayTime => write!(f, "\u{1f3d9} Daytime"),
         }
     }
 }
