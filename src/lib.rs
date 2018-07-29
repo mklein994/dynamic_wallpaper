@@ -293,3 +293,80 @@ fn format_duration(duration: Duration) -> String {
     use chrono_humanize::{Accuracy, HumanTime, Tense};
     HumanTime::from(duration).to_text_en(Accuracy::Precise, Tense::Present)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn image_count_daytime() {
+        let wallpaper = Wallpaper {
+            count: 16,
+            sunrise: 3,
+            sunset: 13,
+        };
+        let image_count = wallpaper.image_count(&TimePeriod::DayTime);
+        assert_eq!(10, image_count);
+    }
+
+    #[test]
+    fn image_count_before_sunrise() {
+        let wallpaper = Wallpaper {
+            count: 16,
+            sunrise: 3,
+            sunset: 13,
+        };
+        let image_count = wallpaper.image_count(&TimePeriod::BeforeSunrise);
+        assert_eq!(6, image_count);
+    }
+
+    #[test]
+    fn image_count_after_sunset() {
+        let wallpaper = Wallpaper {
+            count: 16,
+            sunrise: 3,
+            sunset: 13,
+        };
+        let image_count = wallpaper.image_count(&TimePeriod::AfterSunset);
+        assert_eq!(6, image_count);
+    }
+
+    #[test]
+    fn image_count_daytime_sunset_greater_than_sunrise() {
+        let wallpaper = Wallpaper {
+            count: 16,
+            sunrise: 13,
+            sunset: 3,
+        };
+
+        let image_count = wallpaper.image_count(&TimePeriod::DayTime);
+
+        assert_eq!(6, image_count);
+    }
+
+    #[test]
+    fn image_count_before_sunrise_sunset_greater_than_sunrise() {
+        let wallpaper = Wallpaper {
+            count: 16,
+            sunrise: 13,
+            sunset: 3,
+        };
+
+        let image_count = wallpaper.image_count(&TimePeriod::BeforeSunrise);
+
+        assert_eq!(10, image_count);
+    }
+
+    #[test]
+    fn image_count_after_sunset_sunset_greater_than_sunrise() {
+        let wallpaper = Wallpaper {
+            count: 16,
+            sunrise: 13,
+            sunset: 3,
+        };
+
+        let image_count = wallpaper.image_count(&TimePeriod::AfterSunset);
+
+        assert_eq!(10, image_count);
+    }
+}
