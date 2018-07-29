@@ -57,10 +57,7 @@ pub fn run() -> Result<()> {
         100 * time_since_start.num_nanoseconds().unwrap() / duration.num_nanoseconds().unwrap()
     );
 
-    let image_count = match time_period {
-        TimePeriod::DayTime => wallpaper.sunset - wallpaper.sunrise,
-        _ => wallpaper.count - wallpaper.sunset + wallpaper.sunrise,
-    };
+    let image_count = wallpaper.image_count(&time_period);
     debug!("image count: {}", image_count);
 
     let timer_length = duration.num_nanoseconds().unwrap() / image_count;
@@ -167,6 +164,13 @@ impl Wallpaper {
             sunrise: i64::from(sunrise),
             sunset: i64::from(sunset),
         })
+    }
+
+    fn image_count(&self, time_period: &TimePeriod) -> i64 {
+        match time_period {
+            TimePeriod::DayTime => self.sunset - self.sunrise,
+            _ => self.count - self.sunset + self.sunrise,
+        }
     }
 }
 
