@@ -30,11 +30,7 @@ pub fn run() -> Result<()> {
     let time_period = TimePeriod::new(config.now, sun.sunrise, sun.sunset);
     info!("{}", time_period);
 
-    let (start, end) = match time_period {
-        TimePeriod::BeforeSunrise => (sun.last_sunset, sun.sunrise),
-        TimePeriod::DayTime => (sun.sunrise, sun.sunset),
-        TimePeriod::AfterSunset => (sun.sunset, sun.next_sunrise),
-    };
+    let (start, end) = sun.start_end(&time_period);
     debug!(
         "start time: {} ({})",
         start.with_timezone(&Local),
@@ -231,6 +227,14 @@ impl Sun {
             sunset,
             next_sunrise,
         })
+    }
+
+    fn start_end(&self, time_period: &TimePeriod) -> (DateTime<Utc>, DateTime<Utc>) {
+        match time_period {
+            TimePeriod::BeforeSunrise => (self.last_sunset, self.sunrise),
+            TimePeriod::DayTime => (self.sunrise, self.sunset),
+            TimePeriod::AfterSunset => (self.sunset, self.next_sunrise),
+        }
     }
 }
 
