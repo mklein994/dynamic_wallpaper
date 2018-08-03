@@ -8,10 +8,13 @@ travis-ci = { repository = "mklein994/dynamic_wallpaper" }
 maintenance = { status = "experimental" }
 
 [dependencies]
-chrono = "0.4.4"
+chrono = { version = "0.4.4", features = ["serde"] }
+serde = "1.0.70"
+serde_derive = "1.0.70"
 chrono-humanize = "0.0.11"
 dotenv = "0.13.0"
 env_logger = "0.5.10"
 failure = "0.1.1"
 log = "0.4.3"
 spa = { git = "https://github.com/mklein994/spa-rs", branch = "implement-error-trait" }
+toml = "0.4.6"
