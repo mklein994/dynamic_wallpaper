@@ -353,20 +353,38 @@ mod tests {
     }
 
     #[test]
-    fn image_count_daytime_sunset_greater_than_sunrise() {
-        let image_count = WALLPAPER.image_count(&TimePeriod::DayTime);
-        assert_eq!(6, image_count);
+    #[ignore]
+    fn image_count_daytime_daybreak_greater_than_nightfall() {
+        let wallpaper = Wallpaper {
+            count: 16,
+            daybreak: 13,
+            nightfall: 2,
+        };
+        let image_count = wallpaper.image_count(&TimePeriod::DayTime);
+        assert_eq!(5, image_count);
     }
 
     #[test]
-    fn image_count_before_sunrise_sunset_greater_than_sunrise() {
-        let image_count = WALLPAPER.image_count(&TimePeriod::BeforeSunrise);
-        assert_eq!(10, image_count);
+    #[ignore]
+    fn image_count_before_sunrise_daybreak_greater_than_nightfall() {
+        let wallpaper = Wallpaper {
+            count: 16,
+            daybreak: 13,
+            nightfall: 2,
+        };
+        let image_count = wallpaper.image_count(&TimePeriod::BeforeSunrise);
+        assert_eq!(11, image_count);
     }
 
     #[test]
-    fn image_count_after_sunset_sunset_greater_than_sunrise() {
-        let image_count = WALLPAPER.image_count(&TimePeriod::AfterSunset);
-        assert_eq!(10, image_count);
+    #[ignore]
+    fn image_count_after_sunset_daybreak_greater_than_nightfall() {
+        let wallpaper = Wallpaper {
+            count: 16,
+            daybreak: 13,
+            nightfall: 2,
+        };
+        let image_count = wallpaper.image_count(&TimePeriod::AfterSunset);
+        assert_eq!(11, image_count);
     }
 }
