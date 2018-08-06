@@ -189,7 +189,8 @@ impl Sun {
         use spa::SunriseAndSet;
 
         //let utc_now = Utc::now();
-        let utc_now = now.with_timezone(&Local)
+        let utc_now = now
+            .with_timezone(&Local)
             .date()
             .and_hms(12, 0, 0)
             .with_timezone(&Utc);
