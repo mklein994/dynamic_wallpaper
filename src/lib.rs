@@ -27,81 +27,83 @@ fn init() {
 pub fn run() -> Result<()> {
     init();
 
-    let config = Config::new().with_context(|c| format!("Config: {}", c))?;
-    info!("config set ✓");
-    debug!("{:#?}", config);
+    let config = Config::new()?;
+    let now = config.now;
 
-    let wallpaper = Wallpaper::new().with_context(|c| format!("Wallpaper: {}", c))?;
-    debug!("{:#?}", wallpaper);
+    let wallpaper = Wallpaper {
+        count: 16,
+        sunrise: 2,
+        sunset: 13,
+    };
 
-    let sun = Sun::new(config.now, config.lat, config.lon).with_context(|c| format!("Sun: {}", c))?;
-    info!("{}", sun);
-    info!("now:    {}", config.now.with_timezone(&Local));
+    let sun = Sun::new(config.now, config.lat, config.lon)?;
 
-    let time_period = TimePeriod::new(config.now, sun.sunrise, sun.sunset);
+    let time_period = TimePeriod::new(now, sun.sunrise, sun.sunset);
     info!("{}", time_period);
-
-    let (start, end) = sun.start_end(&time_period);
-    debug!(
-        "start time: {} ({})",
-        start.with_timezone(&Local),
-        match time_period {
-            TimePeriod::DayTime => "sunrise",
-            TimePeriod::BeforeSunrise => "last sunset",
-            TimePeriod::AfterSunset => "sunset",
-        }
-    );
-    debug!("end time:   {}", end.with_timezone(&Local));
-
-    debug!(
-        "halfway:    {}",
-        start.with_timezone(&Local) + (end - start) / 2
-    );
-
-    let duration = end - start;
-    debug!("duration: {}", format_duration(duration));
-
-    let time_since_start = config.now - start;
-    debug!(
-        "time since start: {} ({}%)",
-        format_duration(time_since_start),
-        100 * time_since_start.num_nanoseconds().unwrap() / duration.num_nanoseconds().unwrap()
-    );
 
     let image_count = wallpaper.image_count(&time_period);
     debug!("image count: {}", image_count);
 
-    let timer_length = duration.num_nanoseconds().unwrap() / image_count;
-    debug!(
-        "timer length: {}",
-        format_duration(Duration::nanoseconds(timer_length))
-    );
+    let (start, end) = sun.start_end(&time_period);
 
-    let index = get_index(config.now, start, timer_length);
+    let index = get_index(now, start, end, image_count);
+    debug!("index: {}/{}", index, image_count);
 
-    info!(
-        "index: {} of {} ({}%)",
-        index,
-        image_count,
-        index * 100 / image_count
-    );
+    let image = get_image(index, time_period, &wallpaper);
 
-    println!(
-        "{}",
-        match time_period {
-            TimePeriod::DayTime => index + wallpaper.sunrise,
-            TimePeriod::AfterSunset => index / 2 + wallpaper.sunset,
-            TimePeriod::BeforeSunrise => index,
-        }
-    );
+    println!("{}", image);
 
     Ok(())
 }
 
-fn get_index(now: DateTime<Utc>, start: DateTime<Utc>, timer_length: i64) -> i64 {
+fn get_image(index: i64, time_period: TimePeriod, wallpaper: &Wallpaper) -> i64 {
+    let mut image = match time_period {
+        TimePeriod::DayTime => index + wallpaper.sunrise,
+        _ => index + wallpaper.sunset,
+    };
+
+    if image > wallpaper.count {
+        image -= wallpaper.count;
+    }
+
+    image
+}
+
+fn get_index(
+    now: DateTime<Utc>,
+    start: DateTime<Utc>,
+    end: DateTime<Utc>,
+    image_count: i64,
+) -> i64 {
     let elapsed_time = now - start;
-    debug!("elapsed time: {}", format_duration(elapsed_time));
-    elapsed_time.num_nanoseconds().unwrap() / timer_length
+    let elapsed_percent = elapsed_time.num_nanoseconds().unwrap() as f64 * 100_f64
+        / (end - start).num_nanoseconds().unwrap() as f64;
+    debug!(
+        "elapsed time: {} ({}%)",
+        format_duration(elapsed_time),
+        elapsed_percent
+    );
+
+    debug!(
+        "{}",
+        elapsed_time.num_nanoseconds().unwrap() as f64
+            / ((end - start).num_nanoseconds().unwrap() as f64 / image_count as f64)
+    );
+
+    // alternate
+    debug!(
+        "{}",
+        (elapsed_time.num_nanoseconds().unwrap() * image_count) as f64
+            / (end - start).num_nanoseconds().unwrap() as f64
+    );
+    (elapsed_time.num_nanoseconds().unwrap() * image_count)
+        / (end - start).num_nanoseconds().unwrap()
+
+    //  elapsed_time
+    // ━━━━━━━━━━━━━━━
+    //  (end - start)
+    //  ─────────────
+    //   image_count
 }
 
 #[derive(Debug)]
@@ -187,36 +189,46 @@ impl Sun {
         use spa::SunriseAndSet;
 
         //let utc_now = Utc::now();
-        let utc_now = now
-            .with_timezone(&Local)
+        let utc_now = now.with_timezone(&Local)
             .date()
             .and_hms(12, 0, 0)
             .with_timezone(&Utc);
 
-        debug!("now:          {}", now.with_timezone(&Local));
-        debug!("UTC now:      {}", utc_now.with_timezone(&Local));
+        info!("now:          {}", now.with_timezone(&Local));
+        debug!("UTC now:      {}", utc_now);
 
         debug_assert!(Utc::today() - Duration::days(1) <= now.date());
         debug_assert!(now.date() <= Utc::today() + Duration::days(1));
 
-        let (sunrise, sunset) = match spa::calc_sunrise_and_set(utc_now, lat, lon)? {
-            SunriseAndSet::Daylight(sunrise, sunset) => (sunrise, sunset),
-            _ => unimplemented!(),
-        };
-        debug!("sunrise:      {}", sunrise.with_timezone(&Local));
-        debug!("sunset:       {}", sunset.with_timezone(&Local));
+        fn halfway(start: DateTime<Utc>, end: DateTime<Utc>) {
+            debug!(
+                "½ way:        {}",
+                start.with_timezone(&Local)
+                    + Duration::nanoseconds((end - start).num_nanoseconds().unwrap() / 2)
+            );
+        }
 
         let last_sunset = match spa::calc_sunrise_and_set(utc_now - Duration::days(1), lat, lon)? {
             SunriseAndSet::Daylight(_, sunset) => sunset,
             _ => unimplemented!(),
         };
-        debug!("last sunset:  {}", last_sunset.with_timezone(&Local));
+        info!("last sunset:  {}", last_sunset.with_timezone(&Local));
+
+        let (sunrise, sunset) = match spa::calc_sunrise_and_set(utc_now, lat, lon)? {
+            SunriseAndSet::Daylight(sunrise, sunset) => (sunrise, sunset),
+            _ => unimplemented!(),
+        };
+        halfway(last_sunset, sunrise);
+        info!("sunrise:      {}", sunrise.with_timezone(&Local));
+        halfway(sunrise, sunset);
+        info!("sunset:       {}", sunset.with_timezone(&Local));
 
         let next_sunrise = match spa::calc_sunrise_and_set(utc_now + Duration::days(1), lat, lon)? {
             spa::SunriseAndSet::Daylight(sunrise, _) => sunrise,
             _ => unimplemented!(),
         };
-        debug!("next sunrise: {}", next_sunrise.with_timezone(&Local));
+        halfway(sunset, next_sunrise);
+        info!("next sunrise: {}", next_sunrise.with_timezone(&Local));
 
         debug_assert!(last_sunset < sunrise);
         debug_assert!(sunrise < sunset);
@@ -269,9 +281,29 @@ enum TimePeriod {
 
 impl TimePeriod {
     fn new(now: DateTime<Utc>, sunrise: DateTime<Utc>, sunset: DateTime<Utc>) -> Self {
-        if now <= sunrise {
+        debug!(
+            "now: {} ({})",
+            now.with_timezone(&Local),
+            now.with_timezone(&Local).num_seconds_from_midnight()
+        );
+        debug!(
+            "sunrise: {} ({})",
+            sunrise.with_timezone(&Local),
+            sunrise.with_timezone(&Local).num_seconds_from_midnight()
+        );
+        debug!(
+            "sunset: {} ({})",
+            sunset.with_timezone(&Local),
+            sunset.with_timezone(&Local).num_seconds_from_midnight()
+        );
+
+        if now.with_timezone(&Local).num_seconds_from_midnight()
+            <= sunrise.with_timezone(&Local).num_seconds_from_midnight()
+        {
             TimePeriod::BeforeSunrise
-        } else if now <= sunset {
+        } else if now.with_timezone(&Local).num_seconds_from_midnight()
+            < sunset.with_timezone(&Local).num_seconds_from_midnight()
+        {
             TimePeriod::DayTime
         } else {
             TimePeriod::AfterSunset
