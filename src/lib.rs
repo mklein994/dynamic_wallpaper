@@ -30,11 +30,7 @@ pub fn run() -> Result<()> {
     let config = Config::new()?;
     let now = config.now;
 
-    let wallpaper = Wallpaper {
-        count: 16,
-        sunrise: 2,
-        sunset: 13,
-    };
+    let wallpaper = Wallpaper::new()?;
 
     let sun = Sun::new(config.now, config.lat, config.lon)?;
 
@@ -58,8 +54,8 @@ pub fn run() -> Result<()> {
 
 fn get_image(index: i64, time_period: TimePeriod, wallpaper: &Wallpaper) -> i64 {
     let mut image = match time_period {
-        TimePeriod::DayTime => index + wallpaper.sunrise,
-        _ => index + wallpaper.sunset,
+        TimePeriod::DayTime => index + wallpaper.daybreak,
+        _ => index + wallpaper.nightfall,
     };
 
     if image > wallpaper.count {
@@ -142,8 +138,8 @@ impl Config {
 #[derive(Debug)]
 struct Wallpaper {
     count: i64,
-    sunrise: i64,
-    sunset: i64,
+    daybreak: i64,
+    nightfall: i64,
 }
 
 impl Wallpaper {
@@ -153,25 +149,26 @@ impl Wallpaper {
         let count = env::var("WALLPAPER_COUNT")
             .with_context(|c| format!("WALLPAPER_COUNT: {}", c))?
             .parse::<u8>()?;
-        let sunrise = env::var("WALLPAPER_SUNRISE")
-            .with_context(|c| format!("WALLPAPER_SUNRISE: {} ", c))?
-            .parse::<u8>()?;
-        let sunset = env::var("WALLPAPER_SUNSET")
-            .with_context(|c| format!("WALLPAPER_SUNSET: {}", c))?
+        let daybreak = env::var("WALLPAPER_DAYBREAK")
+            .with_context(|c| format!("WALLPAPER_DAYBREAK: {} ", c))?
             .parse::<u8>()
-            .with_context(|c| format!("WALLPAPER_SUNSET: {}", c))?;
+            .with_context(|c| format!("WALLPAPER_DAYBREAK: {}", c))?;
+        let nightfall = env::var("WALLPAPER_NIGHTFALL")
+            .with_context(|c| format!("WALLPAPER_NIGHTFALL: {}", c))?
+            .parse::<u8>()
+            .with_context(|c| format!("WALLPAPER_NIGHTFALL: {}", c))?;
 
         Ok(Self {
             count: i64::from(count),
-            sunrise: i64::from(sunrise),
-            sunset: i64::from(sunset),
+            daybreak: i64::from(daybreak),
+            nightfall: i64::from(nightfall),
         })
     }
 
     fn image_count(&self, time_period: &TimePeriod) -> i64 {
         match time_period {
-            TimePeriod::DayTime => self.sunset - self.sunrise,
-            _ => self.count - self.sunset + self.sunrise,
+            TimePeriod::DayTime => self.nightfall - self.daybreak,
+            _ => self.count - self.nightfall + self.daybreak,
         }
     }
 }
@@ -331,75 +328,45 @@ fn format_duration(duration: Duration) -> String {
 mod tests {
     use super::*;
 
+    const WALLPAPER: Wallpaper = Wallpaper {
+        count: 16,
+        daybreak: 2,
+        nightfall: 13,
+    };
+
     #[test]
     fn image_count_daytime() {
-        let wallpaper = Wallpaper {
-            count: 16,
-            sunrise: 3,
-            sunset: 13,
-        };
-        let image_count = wallpaper.image_count(&TimePeriod::DayTime);
+        let image_count = WALLPAPER.image_count(&TimePeriod::DayTime);
         assert_eq!(10, image_count);
     }
 
     #[test]
     fn image_count_before_sunrise() {
-        let wallpaper = Wallpaper {
-            count: 16,
-            sunrise: 3,
-            sunset: 13,
-        };
-        let image_count = wallpaper.image_count(&TimePeriod::BeforeSunrise);
+        let image_count = WALLPAPER.image_count(&TimePeriod::BeforeSunrise);
         assert_eq!(6, image_count);
     }
 
     #[test]
     fn image_count_after_sunset() {
-        let wallpaper = Wallpaper {
-            count: 16,
-            sunrise: 3,
-            sunset: 13,
-        };
-        let image_count = wallpaper.image_count(&TimePeriod::AfterSunset);
+        let image_count = WALLPAPER.image_count(&TimePeriod::AfterSunset);
         assert_eq!(6, image_count);
     }
 
     #[test]
     fn image_count_daytime_sunset_greater_than_sunrise() {
-        let wallpaper = Wallpaper {
-            count: 16,
-            sunrise: 13,
-            sunset: 3,
-        };
-
-        let image_count = wallpaper.image_count(&TimePeriod::DayTime);
-
+        let image_count = WALLPAPER.image_count(&TimePeriod::DayTime);
         assert_eq!(6, image_count);
     }
 
     #[test]
     fn image_count_before_sunrise_sunset_greater_than_sunrise() {
-        let wallpaper = Wallpaper {
-            count: 16,
-            sunrise: 13,
-            sunset: 3,
-        };
-
-        let image_count = wallpaper.image_count(&TimePeriod::BeforeSunrise);
-
+        let image_count = WALLPAPER.image_count(&TimePeriod::BeforeSunrise);
         assert_eq!(10, image_count);
     }
 
     #[test]
     fn image_count_after_sunset_sunset_greater_than_sunrise() {
-        let wallpaper = Wallpaper {
-            count: 16,
-            sunrise: 13,
-            sunset: 3,
-        };
-
-        let image_count = wallpaper.image_count(&TimePeriod::AfterSunset);
-
+        let image_count = WALLPAPER.image_count(&TimePeriod::AfterSunset);
         assert_eq!(10, image_count);
     }
 }
