@@ -45,14 +45,14 @@ pub fn run() -> Result<()> {
     let index = get_index(now, start, end, image_count);
     debug!("index: {}/{}", index, image_count);
 
-    let image = get_image(index, time_period, &wallpaper);
+    let image = get_image(index, &time_period, &wallpaper);
 
     println!("{}", image);
 
     Ok(())
 }
 
-fn get_image(index: i64, time_period: TimePeriod, wallpaper: &Wallpaper) -> i64 {
+fn get_image(index: i64, time_period: &TimePeriod, wallpaper: &Wallpaper) -> i64 {
     let mut image = match time_period {
         TimePeriod::DayTime => index + wallpaper.daybreak,
         _ => index + wallpaper.nightfall,
