@@ -337,19 +337,19 @@ mod tests {
     #[test]
     fn image_count_daytime() {
         let image_count = WALLPAPER.image_count(&TimePeriod::DayTime);
-        assert_eq!(10, image_count);
+        assert_eq!(11, image_count);
     }
 
     #[test]
     fn image_count_before_sunrise() {
         let image_count = WALLPAPER.image_count(&TimePeriod::BeforeSunrise);
-        assert_eq!(6, image_count);
+        assert_eq!(5, image_count);
     }
 
     #[test]
     fn image_count_after_sunset() {
         let image_count = WALLPAPER.image_count(&TimePeriod::AfterSunset);
-        assert_eq!(6, image_count);
+        assert_eq!(5, image_count);
     }
 
     #[test]
