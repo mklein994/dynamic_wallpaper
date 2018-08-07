@@ -1,18 +1,21 @@
 extern crate chrono;
 extern crate chrono_humanize;
-extern crate dotenv;
+extern crate dirs;
 extern crate env_logger;
 extern crate failure;
 #[macro_use]
 extern crate log;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate spa;
+extern crate toml;
 
 #[cfg(test)]
 #[macro_use]
 extern crate lazy_static;
 
 use chrono::{DateTime, Duration, Local, Timelike, Utc};
-use failure::ResultExt;
 use std::fmt;
 
 type Result<T> = std::result::Result<T, failure::Error>;
@@ -23,9 +26,6 @@ fn init() {
         .default_format_timestamp(false)
         .init();
     info!("logging enabled");
-
-    dotenv::dotenv().ok();
-    info!("dotenv ok ✓");
 }
 
 pub fn run() -> Result<()> {
@@ -34,7 +34,7 @@ pub fn run() -> Result<()> {
     let config = Config::new()?;
     let now = config.now;
 
-    let wallpaper = Wallpaper::new()?;
+    let wallpaper = config.wallpaper;
 
     let sun = Sun::new(config.now, config.lat, config.lon)?;
 
@@ -93,35 +93,46 @@ struct Config {
     now: DateTime<Utc>,
     lat: f64,
     lon: f64,
+    wallpaper: Wallpaper,
+}
+
+#[derive(Debug, Deserialize)]
+struct TomlConfig {
+    now: Option<DateTime<Utc>>,
+    lat: f64,
+    lon: f64,
+    wallpaper: Wallpaper,
+}
+
+impl From<TomlConfig> for Config {
+    fn from(config: TomlConfig) -> Self {
+        Self {
+            now: config.now.unwrap_or_else(Utc::now),
+            lat: config.lat,
+            lon: config.lon,
+            wallpaper: config.wallpaper,
+        }
+    }
 }
 
 impl Config {
     fn new() -> Result<Self> {
-        use std::env;
+        use std::fs;
 
-        let now = if let Ok(n) = env::var("WALLPAPER_NOW") {
-            warn!("Using WALLPAPER_NOW as current time");
-            DateTime::parse_from_rfc3339(&n)
-                .with_context(|c| format!("WALLPAPER_NOW: {}", c))?
-                .with_timezone(&Utc)
-        } else {
-            Utc::now()
-        };
+        let filename = dirs::config_dir()
+            .expect("Couldn't find $XDG_CONFIG_DIR (~/.config/)")
+            .join("dynamic_wallpaper")
+            .join("config.toml");
 
-        let lat = env::var("WALLPAPER_LAT")
-            .with_context(|c| format!("WALLPAPER_LAT: {}", c))?
-            .parse::<f64>()
-            .with_context(|c| format!("WALLPAPER_LAT: {}", c))?;
-        let lon = env::var("WALLPAPER_LON")
-            .with_context(|c| format!("WALLPAPER_LON: {}", c))?
-            .parse::<f64>()
-            .with_context(|c| format!("WALLPAPER_LON: {}", c))?;
+        let contents = fs::read_to_string(filename)?;
 
-        Ok(Self { now, lat, lon })
+        let config: TomlConfig = toml::from_str(&contents)?;
+
+        Ok(config.into())
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 struct Wallpaper {
     count: i64,
     daybreak: i64,
@@ -129,28 +140,6 @@ struct Wallpaper {
 }
 
 impl Wallpaper {
-    fn new() -> Result<Self> {
-        use std::env;
-
-        let count = env::var("WALLPAPER_COUNT")
-            .with_context(|c| format!("WALLPAPER_COUNT: {}", c))?
-            .parse::<u8>()?;
-        let daybreak = env::var("WALLPAPER_DAYBREAK")
-            .with_context(|c| format!("WALLPAPER_DAYBREAK: {} ", c))?
-            .parse::<u8>()
-            .with_context(|c| format!("WALLPAPER_DAYBREAK: {}", c))?;
-        let nightfall = env::var("WALLPAPER_NIGHTFALL")
-            .with_context(|c| format!("WALLPAPER_NIGHTFALL: {}", c))?
-            .parse::<u8>()
-            .with_context(|c| format!("WALLPAPER_NIGHTFALL: {}", c))?;
-
-        Ok(Self {
-            count: i64::from(count),
-            daybreak: i64::from(daybreak),
-            nightfall: i64::from(nightfall),
-        })
-    }
-
     fn image_count(&self, time_period: &TimePeriod) -> i64 {
         match time_period {
             TimePeriod::DayTime => self.nightfall - self.daybreak,

@@ -12,7 +12,6 @@ chrono = { version = "0.4.4", features = ["serde"] }
 serde = "1.0.70"
 serde_derive = "1.0.70"
 chrono-humanize = "0.0.11"
-dotenv = "0.13.0"
 dirs = "1.0.2"
 env_logger = "0.5.10"
 failure = "0.1.1"
