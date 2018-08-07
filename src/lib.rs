@@ -38,15 +38,17 @@ pub fn run() -> Result<()> {
 
     let sun = Sun::new(config.now, config.lat, config.lon)?;
 
-    info!("{}", sun.time_period);
+    let time_period = TimePeriod::new(&now, &sun.sunrise, &sun.sunset);
 
-    let image_count = wallpaper.image_count(&sun.time_period);
+    info!("{}", time_period);
+
+    let image_count = wallpaper.image_count(&time_period);
     debug!("image count: {}", image_count);
 
-    let index = get_index(now, &sun, image_count);
+    let index = get_index(now, &sun, &time_period, image_count);
     debug!("index: {}/{}", index, image_count);
 
-    let image = get_image(index, &sun.time_period, &wallpaper);
+    let image = get_image(index, &time_period, &wallpaper);
 
     println!("{}", image);
 
@@ -66,8 +68,8 @@ fn get_image(index: i64, time_period: &TimePeriod, wallpaper: &Wallpaper) -> i64
     image
 }
 
-fn get_index(now: DateTime<Utc>, sun: &Sun, image_count: i64) -> i64 {
-    let (start, end) = sun.start_end();
+fn get_index(now: DateTime<Utc>, sun: &Sun, time_period: &TimePeriod, image_count: i64) -> i64 {
+    let (start, end) = sun.start_end(time_period);
     let elapsed_time = now - start;
     let elapsed_percent = elapsed_time.num_nanoseconds().unwrap() as f64 * 100_f64
         / (end - start).num_nanoseconds().unwrap() as f64;
@@ -176,7 +178,6 @@ struct Sun {
     sunrise: DateTime<Utc>,
     sunset: DateTime<Utc>,
     next_sunrise: DateTime<Utc>,
-    time_period: TimePeriod,
 }
 
 impl Sun {
@@ -232,36 +233,19 @@ impl Sun {
         debug_assert!(last_sunset.with_nanosecond(0).unwrap() <= now.with_nanosecond(0).unwrap());
         debug_assert!(now.with_nanosecond(0).unwrap() <= next_sunrise.with_nanosecond(0).unwrap());
 
-        let time_period = Sun::time_period(&now, &sunrise, &sunset);
-
         Ok(Self {
             last_sunset,
             sunrise,
             sunset,
             next_sunrise,
-            time_period,
         })
     }
 
-    fn start_end(&self) -> (DateTime<Utc>, DateTime<Utc>) {
-        match self.time_period {
+    fn start_end(&self, time_period: &TimePeriod) -> (DateTime<Utc>, DateTime<Utc>) {
+        match time_period {
             TimePeriod::BeforeSunrise => (self.last_sunset, self.sunrise),
             TimePeriod::DayTime => (self.sunrise, self.sunset),
             TimePeriod::AfterSunset => (self.sunset, self.next_sunrise),
-        }
-    }
-
-    fn time_period(
-        now: &DateTime<Utc>,
-        sunrise: &DateTime<Utc>,
-        sunset: &DateTime<Utc>,
-    ) -> TimePeriod {
-        if *now > *sunset {
-            TimePeriod::AfterSunset
-        } else if *now >= *sunrise {
-            TimePeriod::DayTime
-        } else {
-            TimePeriod::BeforeSunrise
         }
     }
 }
@@ -291,6 +275,18 @@ enum TimePeriod {
     DayTime,
 }
 
+impl TimePeriod {
+    fn new(now: &DateTime<Utc>, sunrise: &DateTime<Utc>, sunset: &DateTime<Utc>) -> Self {
+        if *now > *sunset {
+            TimePeriod::AfterSunset
+        } else if *now >= *sunrise {
+            TimePeriod::DayTime
+        } else {
+            TimePeriod::BeforeSunrise
+        }
+    }
+}
+
 impl fmt::Display for TimePeriod {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -317,21 +313,6 @@ mod tests {
             sunrise: Local.ymd(2018, 8, 6).and_hms(6, 4, 25).with_timezone(&Utc),
             sunset: Local.ymd(2018, 8, 6).and_hms(21, 1, 44).with_timezone(&Utc),
             next_sunrise: Local.ymd(2018, 8, 6).and_hms(6, 5, 52).with_timezone(&Utc),
-            time_period: TimePeriod::DayTime,
-        };
-        static ref SUN_AFTER_SUNSET: Sun = Sun {
-            last_sunset: Local.ymd(2018, 8, 5).and_hms(21, 3, 24).with_timezone(&Utc),
-            sunrise: Local.ymd(2018, 8, 6).and_hms(6, 4, 25).with_timezone(&Utc),
-            sunset: Local.ymd(2018, 8, 6).and_hms(21, 1, 44).with_timezone(&Utc),
-            next_sunrise: Local.ymd(2018, 8, 6).and_hms(6, 5, 52).with_timezone(&Utc),
-            time_period: TimePeriod::AfterSunset,
-        };
-        static ref SUN_BEFORE_SUNRISE: Sun = Sun {
-            last_sunset: Local.ymd(2018, 8, 5).and_hms(21, 3, 24).with_timezone(&Utc),
-            sunrise: Local.ymd(2018, 8, 6).and_hms(6, 4, 25).with_timezone(&Utc),
-            sunset: Local.ymd(2018, 8, 6).and_hms(21, 1, 44).with_timezone(&Utc),
-            next_sunrise: Local.ymd(2018, 8, 6).and_hms(6, 5, 52).with_timezone(&Utc),
-            time_period: TimePeriod::BeforeSunrise,
         };
     }
 
@@ -399,7 +380,7 @@ mod tests {
 
     #[test]
     fn time_period_noon() {
-        let time_period = Sun::time_period(
+        let time_period = TimePeriod::new(
             &Local.ymd(2018, 8, 6).and_hms(12, 0, 0).with_timezone(&Utc),
             &SUN.sunrise,
             &SUN.sunset,
@@ -409,7 +390,7 @@ mod tests {
 
     #[test]
     fn time_period_last_midnight() {
-        let time_period = Sun::time_period(
+        let time_period = TimePeriod::new(
             &Local.ymd(2018, 8, 6).and_hms(0, 0, 0).with_timezone(&Utc),
             &SUN.sunrise,
             &SUN.sunset,
@@ -419,7 +400,7 @@ mod tests {
 
     #[test]
     fn time_period_next_midnight() {
-        let time_period = Sun::time_period(
+        let time_period = TimePeriod::new(
             &Local.ymd(2018, 8, 7).and_hms(0, 0, 0).with_timezone(&Utc),
             &SUN.sunrise,
             &SUN.sunset,
@@ -429,19 +410,19 @@ mod tests {
 
     #[test]
     fn time_period_sunrise() {
-        let time_period = Sun::time_period(&SUN.sunrise, &SUN.sunrise, &SUN.sunset);
+        let time_period = TimePeriod::new(&SUN.sunrise, &SUN.sunrise, &SUN.sunset);
         assert_eq!(TimePeriod::DayTime, time_period);
     }
 
     #[test]
     fn time_period_sunset() {
-        let time_period = Sun::time_period(&SUN.sunset, &SUN.sunrise, &SUN.sunset);
+        let time_period = TimePeriod::new(&SUN.sunset, &SUN.sunrise, &SUN.sunset);
         assert_eq!(TimePeriod::DayTime, time_period);
     }
 
     #[test]
     fn time_period_just_before_sunset() {
-        let time_period = Sun::time_period(
+        let time_period = TimePeriod::new(
             &(SUN.sunset - Duration::nanoseconds(1)),
             &SUN.sunrise,
             &SUN.sunset,
@@ -451,7 +432,7 @@ mod tests {
 
     #[test]
     fn time_period_just_after_sunset() {
-        let time_period = Sun::time_period(
+        let time_period = TimePeriod::new(
             &(SUN.sunset + Duration::nanoseconds(1)),
             &SUN.sunrise,
             &SUN.sunset,
@@ -461,7 +442,7 @@ mod tests {
 
     #[test]
     fn time_period_just_before_sunrise() {
-        let time_period = Sun::time_period(
+        let time_period = TimePeriod::new(
             &(SUN.sunrise - Duration::nanoseconds(1)),
             &SUN.sunrise,
             &SUN.sunset,
@@ -471,7 +452,7 @@ mod tests {
 
     #[test]
     fn time_period_just_after_sunrise() {
-        let time_period = Sun::time_period(
+        let time_period = TimePeriod::new(
             &(SUN.sunrise + Duration::nanoseconds(1)),
             &SUN.sunrise,
             &SUN.sunset,
@@ -481,28 +462,28 @@ mod tests {
 
     #[test]
     fn get_index_sunrise() {
-        let index = get_index(SUN.sunrise, &SUN, DAYTIME_IMAGE_COUNT);
+        let index = get_index(SUN.sunrise, &SUN, &TimePeriod::DayTime, DAYTIME_IMAGE_COUNT);
         assert_eq!(0, index);
     }
 
     #[test]
     fn get_index_sunset() {
-        let index = get_index(SUN.sunset, &SUN, DAYTIME_IMAGE_COUNT);
+        let index = get_index(SUN.sunset, &SUN, &TimePeriod::DayTime, DAYTIME_IMAGE_COUNT);
         assert_eq!(DAYTIME_IMAGE_COUNT, index);
     }
 
     #[test]
     fn get_index_just_past_sunrise() {
         let now = SUN.sunrise + Duration::nanoseconds(1);
-        let index = get_index(now, &SUN, DAYTIME_IMAGE_COUNT);
+        let index = get_index(now, &SUN, &TimePeriod::DayTime, DAYTIME_IMAGE_COUNT);
         assert_eq!(0, index);
     }
 
     #[test]
     fn get_index_just_before_sunrise() {
-        let now = SUN_BEFORE_SUNRISE.sunrise - Duration::nanoseconds(1);
-        debug_assert!(now < SUN_BEFORE_SUNRISE.sunrise);
-        let index = get_index(now, &SUN_BEFORE_SUNRISE, NIGHTTIME_IMAGE_COUNT);
+        let now = SUN.sunrise - Duration::nanoseconds(1);
+        debug_assert!(now < SUN.sunrise);
+        let index = get_index(now, &SUN, &TimePeriod::BeforeSunrise, NIGHTTIME_IMAGE_COUNT);
         assert_eq!(NIGHTTIME_IMAGE_COUNT - 1, index);
     }
 
@@ -510,15 +491,14 @@ mod tests {
     fn get_index_just_before_sunset() {
         let now = SUN.sunset - Duration::nanoseconds(1);
         debug_assert!(now < SUN.sunset);
-        let index = get_index(now, &SUN, DAYTIME_IMAGE_COUNT);
+        let index = get_index(now, &SUN, &TimePeriod::DayTime, DAYTIME_IMAGE_COUNT);
         assert_eq!(DAYTIME_IMAGE_COUNT - 1, index);
     }
 
     #[test]
     fn get_index_just_past_sunset() {
-        let sun = &SUN_AFTER_SUNSET;
-        let now = sun.sunset + Duration::nanoseconds(1);
-        let index = get_index(now, sun, NIGHTTIME_IMAGE_COUNT);
+        let now = SUN.sunset + Duration::nanoseconds(1);
+        let index = get_index(now, &SUN, &TimePeriod::AfterSunset, NIGHTTIME_IMAGE_COUNT);
         assert_eq!(0, index);
     }
 
