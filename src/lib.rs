@@ -54,6 +54,9 @@ pub fn run() -> Result<()> {
     Ok(())
 }
 
+/// Using the index, add the correct offset to add based on the time period.
+///
+/// The offset comes from either daybreak or nightfall, depending on the time period.
 fn get_image(index: i64, time_period: &TimePeriod, wallpaper: &Wallpaper) -> i64 {
     let mut image = match time_period {
         TimePeriod::DayTime => index + wallpaper.daybreak,
@@ -67,6 +70,8 @@ fn get_image(index: i64, time_period: &TimePeriod, wallpaper: &Wallpaper) -> i64
     image
 }
 
+/// Get the index for the current time, within the time period, from the `image_count` number of
+/// images.
 fn get_index(now: DateTime<Utc>, sun: &Sun, time_period: &TimePeriod, image_count: i64) -> i64 {
     let (start, end) = sun.start_end(time_period);
     let elapsed_time = now - start;
