@@ -18,3 +18,6 @@ failure = "0.1.1"
 log = "0.4.3"
 spa = { git = "https://github.com/mklein994/spa-rs", branch = "implement-error-trait" }
 toml = "0.4.6"
+
+[dev-dependencies]
+lazy_static = "1.1.0"
