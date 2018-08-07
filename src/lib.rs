@@ -71,34 +71,21 @@ fn get_image(index: i64, time_period: &TimePeriod, wallpaper: &Wallpaper) -> i64
 fn get_index(now: DateTime<Utc>, sun: &Sun, time_period: &TimePeriod, image_count: i64) -> i64 {
     let (start, end) = sun.start_end(time_period);
     let elapsed_time = now - start;
-    let elapsed_percent = elapsed_time.num_nanoseconds().unwrap() as f64 * 100_f64
-        / (end - start).num_nanoseconds().unwrap() as f64;
     debug!(
-        "elapsed time: {} ({}%)",
+        "elapsed time: {} ({:.2}%)",
         format_duration(elapsed_time),
-        elapsed_percent
-    );
-
-    debug!(
-        "{}",
-        elapsed_time.num_nanoseconds().unwrap() as f64
-            / ((end - start).num_nanoseconds().unwrap() as f64 / image_count as f64)
-    );
-
-    // alternate
-    debug!(
-        "{}",
-        (elapsed_time.num_nanoseconds().unwrap() * image_count) as f64
+        // calculate as a percent
+        elapsed_time.num_nanoseconds().unwrap() as f64 * 100_f64
             / (end - start).num_nanoseconds().unwrap() as f64
     );
-    (elapsed_time.num_nanoseconds().unwrap() * image_count)
-        / (end - start).num_nanoseconds().unwrap()
 
     //  elapsed_time
     // ━━━━━━━━━━━━━━━
     //  (end - start)
     //  ─────────────
     //   image_count
+    (elapsed_time.num_nanoseconds().unwrap() * image_count)
+        / (end - start).num_nanoseconds().unwrap()
 }
 
 #[derive(Debug)]
