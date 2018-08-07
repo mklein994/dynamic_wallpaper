@@ -32,7 +32,7 @@ pub fn run() -> Result<()> {
     init();
 
     let config = Config::new()?;
-    let now = config.now.unwrap_or_else(Utc::now);
+    let now = config.now.unwrap();
 
     let wallpaper = config.wallpaper;
 
@@ -94,10 +94,15 @@ fn get_index(now: DateTime<Utc>, sun: &Sun, time_period: &TimePeriod, image_coun
 
 #[derive(Debug, Deserialize)]
 struct Config {
+    #[serde(default = "default_time")]
     now: Option<DateTime<Utc>>,
     lat: f64,
     lon: f64,
     wallpaper: Wallpaper,
+}
+
+fn default_time() -> Option<DateTime<Utc>> {
+    Some(Utc::now())
 }
 
 impl Config {
