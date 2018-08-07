@@ -32,14 +32,13 @@ pub fn run() -> Result<()> {
     init();
 
     let config = Config::new()?;
-    let now = config.now;
+    let now = config.now.unwrap_or_else(Utc::now);
 
     let wallpaper = config.wallpaper;
 
-    let sun = Sun::new(config.now, config.lat, config.lon)?;
+    let sun = Sun::new(now, config.lat, config.lon)?;
 
     let time_period = TimePeriod::new(&now, &sun.sunrise, &sun.sunset);
-
     info!("{}", time_period);
 
     let image_count = wallpaper.image_count(&time_period);
@@ -88,31 +87,12 @@ fn get_index(now: DateTime<Utc>, sun: &Sun, time_period: &TimePeriod, image_coun
         / (end - start).num_nanoseconds().unwrap()
 }
 
-#[derive(Debug)]
-struct Config {
-    now: DateTime<Utc>,
-    lat: f64,
-    lon: f64,
-    wallpaper: Wallpaper,
-}
-
 #[derive(Debug, Deserialize)]
-struct TomlConfig {
+struct Config {
     now: Option<DateTime<Utc>>,
     lat: f64,
     lon: f64,
     wallpaper: Wallpaper,
-}
-
-impl From<TomlConfig> for Config {
-    fn from(config: TomlConfig) -> Self {
-        Self {
-            now: config.now.unwrap_or_else(Utc::now),
-            lat: config.lat,
-            lon: config.lon,
-            wallpaper: config.wallpaper,
-        }
-    }
 }
 
 impl Config {
@@ -126,9 +106,9 @@ impl Config {
 
         let contents = fs::read_to_string(filename)?;
 
-        let config: TomlConfig = toml::from_str(&contents)?;
+        let config: Config = toml::from_str(&contents)?;
 
-        Ok(config.into())
+        Ok(config)
     }
 }
 
