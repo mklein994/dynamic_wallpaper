@@ -32,8 +32,7 @@ pub fn run() -> Result<()> {
     init();
 
     let config = Config::new()?;
-    let now = config.now.unwrap();
-
+    let now = config.now;
     let wallpaper = config.wallpaper;
 
     let sun = Sun::new(now, config.lat, config.lon)?;
@@ -95,14 +94,15 @@ fn get_index(now: DateTime<Utc>, sun: &Sun, time_period: &TimePeriod, image_coun
 #[derive(Debug, Deserialize)]
 struct Config {
     #[serde(default = "default_time")]
-    now: Option<DateTime<Utc>>,
+    now: DateTime<Utc>,
     lat: f64,
     lon: f64,
+    #[serde(default)]
     wallpaper: Wallpaper,
 }
 
-fn default_time() -> Option<DateTime<Utc>> {
-    Some(Utc::now())
+fn default_time() -> DateTime<Utc> {
+    Utc::now()
 }
 
 impl Config {
@@ -134,6 +134,16 @@ impl Wallpaper {
         match time_period {
             TimePeriod::DayTime => self.nightfall - self.daybreak,
             _ => self.count - self.nightfall + self.daybreak,
+        }
+    }
+}
+
+impl Default for Wallpaper {
+    fn default() -> Self {
+        Self {
+            count: 16,
+            daybreak: 2,
+            nightfall: 13,
         }
     }
 }
