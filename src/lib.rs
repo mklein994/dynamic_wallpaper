@@ -116,7 +116,7 @@ impl Config {
 
         let contents = fs::read_to_string(filename)?;
 
-        let config: Config = toml::from_str(&contents)?;
+        let config: Self = toml::from_str(&contents)?;
 
         Ok(config)
     }
@@ -160,6 +160,14 @@ impl Sun {
     fn new(now: DateTime<Utc>, lat: f64, lon: f64) -> Result<Self> {
         use spa::SunriseAndSet;
 
+        fn halfway(start: DateTime<Utc>, end: DateTime<Utc>) {
+            debug!(
+                "½ way:        {}",
+                start.with_timezone(&Local)
+                    + Duration::nanoseconds((end - start).num_nanoseconds().unwrap() / 2)
+            );
+        }
+
         let utc_now = now
             .with_timezone(&Local)
             .date()
@@ -171,14 +179,6 @@ impl Sun {
 
         debug_assert!(Utc::today() - Duration::days(1) <= now.date());
         debug_assert!(now.date() <= Utc::today() + Duration::days(1));
-
-        fn halfway(start: DateTime<Utc>, end: DateTime<Utc>) {
-            debug!(
-                "½ way:        {}",
-                start.with_timezone(&Local)
-                    + Duration::nanoseconds((end - start).num_nanoseconds().unwrap() / 2)
-            );
-        }
 
         let last_sunset = match spa::calc_sunrise_and_set(utc_now - Duration::days(1), lat, lon)? {
             SunriseAndSet::Daylight(_, sunset) => sunset,
