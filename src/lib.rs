@@ -178,7 +178,7 @@ impl Sun {
         debug!("UTC now:      {}", utc_now);
 
         debug_assert!(Utc::today() - Duration::days(1) <= now.date());
-        debug_assert!(now.date() <= Utc::today() + Duration::days(1));
+        debug_assert!(Utc::today() + Duration::days(1) >= now.date());
 
         let last_sunset = match spa::calc_sunrise_and_set(utc_now - Duration::days(1), lat, lon)? {
             SunriseAndSet::Daylight(_, sunset) => sunset,
