@@ -131,9 +131,18 @@ struct Wallpaper {
 
 impl Wallpaper {
     fn image_count(&self, time_period: &TimePeriod) -> i64 {
-        match time_period {
-            TimePeriod::DayTime => self.nightfall - self.daybreak,
-            _ => self.count - self.nightfall + self.daybreak,
+        if self.daybreak < self.nightfall {
+            if *time_period == TimePeriod::DayTime {
+                self.nightfall - self.daybreak
+            } else {
+                i64::abs(self.count - self.nightfall + self.daybreak) % self.count
+            }
+        } else {
+            if *time_period == TimePeriod::DayTime {
+                i64::abs(self.count - self.daybreak + self.nightfall) % self.count
+            } else {
+                i64::abs(self.nightfall - self.daybreak)
+            }
         }
     }
 }
@@ -319,7 +328,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn image_count_daytime_daybreak_greater_than_nightfall() {
         let wallpaper = Wallpaper {
             count: 16,
@@ -331,7 +339,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn image_count_before_sunrise_daybreak_greater_than_nightfall() {
         let wallpaper = Wallpaper {
             count: 16,
@@ -343,7 +350,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn image_count_after_sunset_daybreak_greater_than_nightfall() {
         let wallpaper = Wallpaper {
             count: 16,
@@ -352,6 +358,72 @@ mod tests {
         };
         let image_count = wallpaper.image_count(&TimePeriod::AfterSunset);
         assert_eq!(11, image_count);
+    }
+
+    #[test]
+    fn image_count_daytime_daybreak_is_count() {
+        let wallpaper = Wallpaper {
+            count: 16,
+            daybreak: 16,
+            nightfall: 2,
+        };
+        let image_count = wallpaper.image_count(&TimePeriod::DayTime);
+        assert_eq!(2, image_count);
+    }
+
+    #[test]
+    fn image_count_before_sunrise_daybreak_is_count() {
+        let wallpaper = Wallpaper {
+            count: 16,
+            daybreak: 16,
+            nightfall: 2,
+        };
+        let image_count = wallpaper.image_count(&TimePeriod::BeforeSunrise);
+        assert_eq!(14, image_count);
+    }
+
+    #[test]
+    fn image_count_after_sunset_daybreak_is_count() {
+        let wallpaper = Wallpaper {
+            count: 16,
+            daybreak: 16,
+            nightfall: 2,
+        };
+        let image_count = wallpaper.image_count(&TimePeriod::AfterSunset);
+        assert_eq!(14, image_count);
+    }
+
+    #[test]
+    fn image_count_daytime_nightfall_is_count() {
+        let wallpaper = Wallpaper {
+            count: 16,
+            daybreak: 3,
+            nightfall: 16,
+        };
+        let image_count = wallpaper.image_count(&TimePeriod::DayTime);
+        assert_eq!(13, image_count);
+    }
+
+    #[test]
+    fn image_count_before_sunrise_nightfall_is_count() {
+        let wallpaper = Wallpaper {
+            count: 16,
+            daybreak: 3,
+            nightfall: 16,
+        };
+        let image_count = wallpaper.image_count(&TimePeriod::BeforeSunrise);
+        assert_eq!(3, image_count);
+    }
+
+    #[test]
+    fn image_count_after_sunset_nightfall_is_count() {
+        let wallpaper = Wallpaper {
+            count: 16,
+            daybreak: 3,
+            nightfall: 16,
+        };
+        let image_count = wallpaper.image_count(&TimePeriod::AfterSunset);
+        assert_eq!(3, image_count);
     }
 
     #[test]
