@@ -137,12 +137,10 @@ impl Wallpaper {
             } else {
                 i64::abs(self.count - self.nightfall + self.daybreak) % self.count
             }
+        } else if *time_period == TimePeriod::DayTime {
+            i64::abs(self.count - self.daybreak + self.nightfall) % self.count
         } else {
-            if *time_period == TimePeriod::DayTime {
-                i64::abs(self.count - self.daybreak + self.nightfall) % self.count
-            } else {
-                i64::abs(self.nightfall - self.daybreak)
-            }
+            i64::abs(self.nightfall - self.daybreak)
         }
     }
 }
