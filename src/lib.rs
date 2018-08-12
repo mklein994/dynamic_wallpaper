@@ -40,46 +40,34 @@ pub fn run() -> Result<()> {
     let time_period = TimePeriod::new(&now, &sun.sunrise, &sun.sunset);
     info!("{}", time_period);
 
-    let image_count = wallpaper.image_count(&time_period);
-    debug!("image count: {}", image_count);
+    let index = get_index(now, &sun, &time_period, &wallpaper);
+    //debug!("index: {}/{}", index, image_count);
 
-    let index = get_index(now, &sun, &time_period, image_count);
-    debug!("index: {}/{}", index, image_count);
-
-    let image = get_image(index, &time_period, &wallpaper);
-
-    println!("{}", image);
+    println!("{}", index);
 
     Ok(())
 }
 
-/// Using the index, add the correct offset to add based on the time period.
-///
-/// The offset comes from either daybreak or nightfall, depending on the time period.
-fn get_image(index: i64, time_period: &TimePeriod, wallpaper: &Wallpaper) -> i64 {
-    let mut image = match time_period {
-        TimePeriod::DayTime => index + wallpaper.daybreak,
-        _ => index + wallpaper.nightfall,
-    };
-
-    if image > wallpaper.count {
-        image -= wallpaper.count;
-    }
-
-    image
-}
-
 /// Get the index for the current time, within the time period, from the `image_count` number of
 /// images.
-fn get_index(now: DateTime<Utc>, sun: &Sun, time_period: &TimePeriod, image_count: i64) -> i64 {
+fn get_index(
+    now: DateTime<Utc>,
+    sun: &Sun,
+    time_period: &TimePeriod,
+    wallpaper: &Wallpaper,
+) -> i64 {
+    let offset = wallpaper.offset(&time_period);
+
+    let image_count = wallpaper.image_count(&time_period);
+
     let (start, end) = sun.start_end(time_period);
-    let elapsed_time = now - start;
+    let duration = (end - start).num_nanoseconds().unwrap();
+    let elapsed_time = (now - start).num_nanoseconds().unwrap();
     debug!(
         "elapsed time: {} ({:.2}%)",
-        format_duration(elapsed_time),
+        format_duration(Duration::nanoseconds(elapsed_time)),
         // calculate as a percent
-        elapsed_time.num_nanoseconds().unwrap() as f64 * 100_f64
-            / (end - start).num_nanoseconds().unwrap() as f64
+        elapsed_time as f64 * 100_f64 / duration as f64
     );
 
     //  elapsed_time
@@ -87,8 +75,7 @@ fn get_index(now: DateTime<Utc>, sun: &Sun, time_period: &TimePeriod, image_coun
     //  (end - start)
     //  ─────────────
     //   image_count
-    (elapsed_time.num_nanoseconds().unwrap() * image_count)
-        / (end - start).num_nanoseconds().unwrap()
+    (offset + elapsed_time * image_count / duration) % wallpaper.count
 }
 
 #[derive(Debug, Deserialize)]
@@ -141,6 +128,14 @@ impl Wallpaper {
             i64::abs(self.count - self.daybreak + self.nightfall) % self.count
         } else {
             i64::abs(self.nightfall - self.daybreak)
+        }
+    }
+
+    /// Image index to use at the start of the phase (daybreak or nightfall).
+    fn offset(&self, time_period: &TimePeriod) -> i64 {
+        match time_period {
+            TimePeriod::DayTime => self.daybreak,
+            _ => self.nightfall,
         }
     }
 }
@@ -304,8 +299,6 @@ mod tests {
         daybreak: 2,
         nightfall: 13,
     };
-    const DAYTIME_IMAGE_COUNT: i64 = 11;
-    const NIGHTTIME_IMAGE_COUNT: i64 = 5;
 
     #[test]
     fn image_count_daytime() {
@@ -508,44 +501,80 @@ mod tests {
 
     #[test]
     fn get_index_sunrise() {
-        let index = get_index(SUN.sunrise, &SUN, &TimePeriod::DayTime, DAYTIME_IMAGE_COUNT);
-        assert_eq!(0, index);
+        let index = get_index(SUN.sunrise, &SUN, &TimePeriod::DayTime, &WALLPAPER);
+        assert_eq!(WALLPAPER.daybreak, index);
     }
 
     #[test]
     fn get_index_sunset() {
-        let index = get_index(SUN.sunset, &SUN, &TimePeriod::DayTime, DAYTIME_IMAGE_COUNT);
-        assert_eq!(DAYTIME_IMAGE_COUNT, index);
+        let index = get_index(SUN.sunset, &SUN, &TimePeriod::DayTime, &WALLPAPER);
+        assert_eq!(WALLPAPER.nightfall, index);
     }
 
     #[test]
     fn get_index_just_past_sunrise() {
         let now = SUN.sunrise + Duration::nanoseconds(1);
-        let index = get_index(now, &SUN, &TimePeriod::DayTime, DAYTIME_IMAGE_COUNT);
-        assert_eq!(0, index);
+        let index = get_index(now, &SUN, &TimePeriod::DayTime, &WALLPAPER);
+        assert_eq!(2, index);
     }
 
     #[test]
     fn get_index_just_before_sunrise() {
         let now = SUN.sunrise - Duration::nanoseconds(1);
         debug_assert!(now < SUN.sunrise);
-        let index = get_index(now, &SUN, &TimePeriod::BeforeSunrise, NIGHTTIME_IMAGE_COUNT);
-        assert_eq!(NIGHTTIME_IMAGE_COUNT - 1, index);
+        let index = get_index(now, &SUN, &TimePeriod::BeforeSunrise, &WALLPAPER);
+        assert_eq!(1, index);
     }
 
     #[test]
     fn get_index_just_before_sunset() {
         let now = SUN.sunset - Duration::nanoseconds(1);
         debug_assert!(now < SUN.sunset);
-        let index = get_index(now, &SUN, &TimePeriod::DayTime, DAYTIME_IMAGE_COUNT);
-        assert_eq!(DAYTIME_IMAGE_COUNT - 1, index);
+        let index = get_index(now, &SUN, &TimePeriod::DayTime, &WALLPAPER);
+        assert_eq!(12, index);
     }
 
     #[test]
     fn get_index_just_past_sunset() {
         let now = SUN.sunset + Duration::nanoseconds(1);
-        let index = get_index(now, &SUN, &TimePeriod::AfterSunset, NIGHTTIME_IMAGE_COUNT);
-        assert_eq!(0, index);
+        let index = get_index(now, &SUN, &TimePeriod::AfterSunset, &WALLPAPER);
+        assert_eq!(13, index);
+    }
+
+    #[test]
+    fn offset_daytime() {
+        let wallpaper = Wallpaper {
+            count: 10,
+            daybreak: 2,
+            nightfall: 7,
+        };
+        assert_eq!(wallpaper.daybreak, wallpaper.offset(&TimePeriod::DayTime));
+    }
+
+    #[test]
+    fn offset_after_sunset() {
+        let wallpaper = Wallpaper {
+            count: 10,
+            daybreak: 2,
+            nightfall: 7,
+        };
+        assert_eq!(
+            wallpaper.nightfall,
+            wallpaper.offset(&TimePeriod::AfterSunset)
+        );
+    }
+
+    #[test]
+    fn offset_before_sunrise() {
+        let wallpaper = Wallpaper {
+            count: 10,
+            daybreak: 2,
+            nightfall: 7,
+        };
+        assert_eq!(
+            wallpaper.nightfall,
+            wallpaper.offset(&TimePeriod::BeforeSunrise)
+        );
     }
 
 }
