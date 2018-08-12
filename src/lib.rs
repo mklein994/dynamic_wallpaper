@@ -40,17 +40,16 @@ pub fn run() -> Result<()> {
     let time_period = TimePeriod::new(&now, &sun.sunrise, &sun.sunset);
     info!("{}", time_period);
 
-    let index = get_index(now, &sun, &time_period, &wallpaper);
-    //debug!("index: {}/{}", index, image_count);
+    let image = get_image(now, &sun, &time_period, &wallpaper);
 
-    println!("{}", index);
+    println!("{}", image);
 
     Ok(())
 }
 
-/// Get the index for the current time, within the time period, from the `image_count` number of
-/// images.
-fn get_index(
+/// Get the image index for the current time, within the time period, from the `image_count` number
+/// of images.
+fn get_image(
     now: DateTime<Utc>,
     sun: &Sun,
     time_period: &TimePeriod,
@@ -131,7 +130,7 @@ impl Wallpaper {
         }
     }
 
-    /// Image index to use at the start of the phase (daybreak or nightfall).
+    /// Index to use as the start of the phase (daybreak or nightfall).
     fn offset(&self, time_period: &TimePeriod) -> i64 {
         match time_period {
             TimePeriod::DayTime => self.daybreak,
@@ -500,45 +499,45 @@ mod tests {
     }
 
     #[test]
-    fn get_index_sunrise() {
-        let index = get_index(SUN.sunrise, &SUN, &TimePeriod::DayTime, &WALLPAPER);
-        assert_eq!(WALLPAPER.daybreak, index);
+    fn get_image_sunrise() {
+        let image = get_image(SUN.sunrise, &SUN, &TimePeriod::DayTime, &WALLPAPER);
+        assert_eq!(WALLPAPER.daybreak, image);
     }
 
     #[test]
-    fn get_index_sunset() {
-        let index = get_index(SUN.sunset, &SUN, &TimePeriod::DayTime, &WALLPAPER);
-        assert_eq!(WALLPAPER.nightfall, index);
+    fn get_image_sunset() {
+        let image = get_image(SUN.sunset, &SUN, &TimePeriod::DayTime, &WALLPAPER);
+        assert_eq!(WALLPAPER.nightfall, image);
     }
 
     #[test]
-    fn get_index_just_past_sunrise() {
+    fn get_image_just_past_sunrise() {
         let now = SUN.sunrise + Duration::nanoseconds(1);
-        let index = get_index(now, &SUN, &TimePeriod::DayTime, &WALLPAPER);
-        assert_eq!(2, index);
+        let image = get_image(now, &SUN, &TimePeriod::DayTime, &WALLPAPER);
+        assert_eq!(2, image);
     }
 
     #[test]
-    fn get_index_just_before_sunrise() {
+    fn get_image_just_before_sunrise() {
         let now = SUN.sunrise - Duration::nanoseconds(1);
         debug_assert!(now < SUN.sunrise);
-        let index = get_index(now, &SUN, &TimePeriod::BeforeSunrise, &WALLPAPER);
-        assert_eq!(1, index);
+        let image = get_image(now, &SUN, &TimePeriod::BeforeSunrise, &WALLPAPER);
+        assert_eq!(1, image);
     }
 
     #[test]
-    fn get_index_just_before_sunset() {
+    fn get_image_just_before_sunset() {
         let now = SUN.sunset - Duration::nanoseconds(1);
         debug_assert!(now < SUN.sunset);
-        let index = get_index(now, &SUN, &TimePeriod::DayTime, &WALLPAPER);
-        assert_eq!(12, index);
+        let image = get_image(now, &SUN, &TimePeriod::DayTime, &WALLPAPER);
+        assert_eq!(12, image);
     }
 
     #[test]
-    fn get_index_just_past_sunset() {
+    fn get_image_just_past_sunset() {
         let now = SUN.sunset + Duration::nanoseconds(1);
-        let index = get_index(now, &SUN, &TimePeriod::AfterSunset, &WALLPAPER);
-        assert_eq!(13, index);
+        let image = get_image(now, &SUN, &TimePeriod::AfterSunset, &WALLPAPER);
+        assert_eq!(13, image);
     }
 
     #[test]
