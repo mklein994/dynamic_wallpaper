@@ -1,5 +1,4 @@
 extern crate chrono;
-extern crate chrono_humanize;
 extern crate dirs;
 extern crate env_logger;
 extern crate failure;
@@ -62,12 +61,6 @@ fn get_image(
     let (start, end) = sun.start_end(time_period);
     let duration = (end - start).num_nanoseconds().unwrap();
     let elapsed_time = (now - start).num_nanoseconds().unwrap();
-    debug!(
-        "elapsed time: {} ({:.2}%)",
-        format_duration(Duration::nanoseconds(elapsed_time)),
-        // calculate as a percent
-        elapsed_time as f64 * 100_f64 / duration as f64
-    );
 
     //  elapsed_time
     // ━━━━━━━━━━━━━━━
@@ -272,11 +265,6 @@ impl fmt::Display for TimePeriod {
             TimePeriod::DayTime => write!(f, "\u{1f3d9} Daytime"),
         }
     }
-}
-
-fn format_duration(duration: Duration) -> String {
-    use chrono_humanize::{Accuracy, HumanTime, Tense};
-    HumanTime::from(duration).to_text_en(Accuracy::Precise, Tense::Present)
 }
 
 #[cfg(test)]
