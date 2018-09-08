@@ -1,3 +1,8 @@
+//! Dynamic Wallpaper
+//!
+//! Print the index of the image to use depending on the time of day and
+//! location. These are set in `~/.config/dynamic_wallpaper/config.toml`.
+
 extern crate chrono;
 extern crate chrono_humanize;
 extern crate dirs;
@@ -18,8 +23,10 @@ extern crate lazy_static;
 use chrono::{DateTime, Duration, Local, Timelike, Utc};
 use std::fmt;
 
+/// Result type alias to handle errors
 type Result<T> = std::result::Result<T, failure::Error>;
 
+/// Initialize logging
 fn init() {
     env_logger::Builder::from_default_env()
         .default_format_module_path(false)
@@ -28,6 +35,7 @@ fn init() {
     info!("logging enabled");
 }
 
+/// Main entry point
 pub fn run() -> Result<()> {
     init();
 
@@ -77,21 +85,44 @@ fn get_image(
     (offset + elapsed_time * image_count / duration) % wallpaper.count
 }
 
+/// Program configuration
+///
+/// Example config:
+/// ```toml
+/// # defaults to now
+/// # now: "2018-08-31T01:45:00.123456789-05:00"
+/// lat: 12.3456
+/// lon: -65.4321
+///
+/// # these are the defaults
+/// [wallpaper]
+/// count: 16
+/// daybreak: 2
+/// nightfall: 13
+/// ```
 #[derive(Debug, Deserialize)]
 struct Config {
+    /// Current time. Defaults to now.
     #[serde(default = "default_time")]
     now: DateTime<Utc>,
+    /// latitude
     lat: f64,
+    /// longitude
     lon: f64,
+    /// Wallpaper configuration
+    ///
+    /// Defaults to Mojave wallpaper
     #[serde(default)]
     wallpaper: Wallpaper,
 }
 
+/// Get the current time in UTC
 fn default_time() -> DateTime<Utc> {
     Utc::now()
 }
 
 impl Config {
+    /// Read a config file from `~/.config/dynamic_wallpaper/config.toml`
     fn new() -> Result<Self> {
         use std::fs;
 
@@ -108,14 +139,19 @@ impl Config {
     }
 }
 
+/// Wallpaper configuration settings
 #[derive(Debug, Deserialize)]
 struct Wallpaper {
+    /// Number of images to cycle through
     count: i64,
+    /// Image index to use at the beginning of day time
     daybreak: i64,
+    /// Image index to use at the beginning of night time
     nightfall: i64,
 }
 
 impl Wallpaper {
+    /// Number of images for the time period
     fn image_count(&self, time_period: &TimePeriod) -> i64 {
         if self.daybreak < self.nightfall {
             if *time_period == TimePeriod::DayTime {
@@ -149,18 +185,25 @@ impl Default for Wallpaper {
     }
 }
 
+/// Sunrise and sunset times for yesterday, today and tomorrow
 #[derive(Debug)]
 struct Sun {
+    /// Yesterday's sunset
     last_sunset: DateTime<Utc>,
+    /// Today's sunrise
     sunrise: DateTime<Utc>,
+    /// Today's sunset
     sunset: DateTime<Utc>,
+    /// Tomorrow's sunrise
     next_sunrise: DateTime<Utc>,
 }
 
 impl Sun {
+    /// Get the sunrise and sunset times depending on the current time and location
     fn new(now: DateTime<Utc>, lat: f64, lon: f64) -> Result<Self> {
         use spa::SunriseAndSet;
 
+        /// Calculate the halfway point between sunrise and sunset
         fn halfway(start: DateTime<Utc>, end: DateTime<Utc>) {
             debug!(
                 "½ way:        {}",
@@ -218,6 +261,7 @@ impl Sun {
         })
     }
 
+    /// Get the sunrise/sunset pairs depending on the time period
     fn start_end(&self, time_period: &TimePeriod) -> (DateTime<Utc>, DateTime<Utc>) {
         match time_period {
             TimePeriod::BeforeSunrise => (self.last_sunset, self.sunrise),
@@ -245,14 +289,20 @@ impl fmt::Display for Sun {
     }
 }
 
+/// Time of day according to the sun
 #[derive(Debug, PartialEq)]
 enum TimePeriod {
+    /// After the sun has set
     AfterSunset,
+    /// Before the sun has risen
     BeforeSunrise,
+    /// Between sunrise and sunset
     DayTime,
 }
 
 impl TimePeriod {
+    /// Determine the time period depending on the given time and the times for
+    /// sunrise and sunset
     fn new(now: &DateTime<Utc>, sunrise: &DateTime<Utc>, sunset: &DateTime<Utc>) -> Self {
         if *now > *sunset {
             TimePeriod::AfterSunset
@@ -274,6 +324,7 @@ impl fmt::Display for TimePeriod {
     }
 }
 
+/// Format duration as a human readable string
 fn format_duration(duration: Duration) -> String {
     use chrono_humanize::{Accuracy, HumanTime, Tense};
     HumanTime::from(duration).to_text_en(Accuracy::Precise, Tense::Present)
