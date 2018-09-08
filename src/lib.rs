@@ -101,19 +101,19 @@ fn get_image(
 /// nightfall: 13
 /// ```
 #[derive(Debug, Deserialize)]
-struct Config {
+pub struct Config {
     /// Current time. Defaults to now.
     #[serde(default = "default_time")]
-    now: DateTime<Utc>,
+    pub now: DateTime<Utc>,
     /// latitude
-    lat: f64,
+    pub lat: f64,
     /// longitude
-    lon: f64,
+    pub lon: f64,
     /// Wallpaper configuration
     ///
     /// Defaults to Mojave wallpaper
     #[serde(default)]
-    wallpaper: Wallpaper,
+    pub wallpaper: Wallpaper,
 }
 
 /// Get the current time in UTC
@@ -141,13 +141,13 @@ impl Config {
 
 /// Wallpaper configuration settings
 #[derive(Debug, Deserialize)]
-struct Wallpaper {
+pub struct Wallpaper {
     /// Number of images to cycle through
-    count: i64,
+    pub count: i64,
     /// Image index to use at the beginning of day time
-    daybreak: i64,
+    pub daybreak: i64,
     /// Image index to use at the beginning of night time
-    nightfall: i64,
+    pub nightfall: i64,
 }
 
 impl Wallpaper {
