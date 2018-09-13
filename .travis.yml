@@ -5,6 +5,10 @@ rust:
 matrix:
   allow_failures:
     - rust: nightly
-cache: cargo
+cache:
+  directories:
+    - /home/travis/.cargo
+before_cache:
+  - rm -rf /home/travis/.cargo/registry
 notifications:
   email: false
