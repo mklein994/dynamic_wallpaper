@@ -10,6 +10,7 @@ rust:
 matrix:
   allow_failures:
     - rust: nightly
+    - os: windows
 cache:
   directories:
     - /home/travis/.cargo
