@@ -1,10 +1,16 @@
 language: rust
+os:
+  - linux
+  - osx
+  - windows
 rust:
   - stable
+  - beta
   - nightly
 matrix:
   allow_failures:
     - rust: nightly
+    - os: windows
 cache:
   directories:
     - /home/travis/.cargo
