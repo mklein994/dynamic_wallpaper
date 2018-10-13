@@ -96,8 +96,11 @@ fn get_image(
 ///
 /// # these are the defaults
 /// [wallpaper]
+/// # The total number of images
 /// count = 16
+/// # The image to use just as the sun appears
 /// daybreak = 2
+/// # The image to use just as the moon shows up
 /// nightfall = 13
 /// ```
 #[derive(Debug, Deserialize)]
