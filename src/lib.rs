@@ -89,8 +89,8 @@ fn get_image(
 ///
 /// Example config:
 /// ```toml
-/// # defaults to now
-/// # now = "2018-08-31T01:45:00.123456789-05:00"
+/// # useful for debugging; defaults to now. Needs to be in RFC3339 format.
+/// #now = "2018-08-31T01:45:00.123456789-05:00"
 /// lat = 12.3456
 /// lon = -65.4321
 ///
