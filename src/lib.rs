@@ -90,15 +90,15 @@ fn get_image(
 /// Example config:
 /// ```toml
 /// # defaults to now
-/// # now: "2018-08-31T01:45:00.123456789-05:00"
-/// lat: 12.3456
-/// lon: -65.4321
+/// # now = "2018-08-31T01:45:00.123456789-05:00"
+/// lat = 12.3456
+/// lon = -65.4321
 ///
 /// # these are the defaults
 /// [wallpaper]
-/// count: 16
-/// daybreak: 2
-/// nightfall: 13
+/// count = 16
+/// daybreak = 2
+/// nightfall = 13
 /// ```
 #[derive(Debug, Deserialize)]
 pub struct Config {
