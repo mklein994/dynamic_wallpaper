@@ -89,16 +89,19 @@ fn get_image(
 ///
 /// Example config:
 /// ```toml
-/// # defaults to now
-/// # now: "2018-08-31T01:45:00.123456789-05:00"
-/// lat: 12.3456
-/// lon: -65.4321
+/// # useful for debugging; defaults to now. Needs to be in RFC3339 format.
+/// #now = "2018-08-31T01:45:00.123456789-05:00"
+/// lat = 12.3456
+/// lon = -65.4321
 ///
 /// # these are the defaults
 /// [wallpaper]
-/// count: 16
-/// daybreak: 2
-/// nightfall: 13
+/// # The total number of images
+/// count = 16
+/// # The image to use just as the sun appears
+/// daybreak = 2
+/// # The image to use just as the moon shows up
+/// nightfall = 13
 /// ```
 #[derive(Debug, Deserialize)]
 pub struct Config {
