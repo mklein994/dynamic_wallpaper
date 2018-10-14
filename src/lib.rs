@@ -44,6 +44,7 @@ pub fn run() -> Result<()> {
     let wallpaper = config.wallpaper;
 
     let sun = Sun::new(now, config.lat, config.lon)?;
+    debug!("{}", sun);
 
     let time_period = TimePeriod::new(&now, &sun.sunrise, &sun.sunset);
     info!("{}", time_period);
@@ -70,12 +71,6 @@ fn get_image(
     let (start, end) = sun.start_end(time_period);
     let duration = (end - start).num_nanoseconds().unwrap();
     let elapsed_time = (now - start).num_nanoseconds().unwrap();
-    debug!(
-        "elapsed time: {} ({:.2}%)",
-        format_duration(Duration::nanoseconds(elapsed_time)),
-        // calculate as a percent
-        elapsed_time as f64 * 100_f64 / duration as f64
-    );
 
     //  elapsed_time
     // ━━━━━━━━━━━━━━━
@@ -206,15 +201,6 @@ impl Sun {
     fn new(now: DateTime<Utc>, lat: f64, lon: f64) -> Result<Self> {
         use spa::SunriseAndSet;
 
-        /// Calculate the halfway point between sunrise and sunset
-        fn halfway(start: DateTime<Utc>, end: DateTime<Utc>) {
-            debug!(
-                "½ way:        {}",
-                start.with_timezone(&Local)
-                    + Duration::nanoseconds((end - start).num_nanoseconds().unwrap() / 2)
-            );
-        }
-
         let utc_now = now
             .with_timezone(&Local)
             .date()
@@ -231,23 +217,16 @@ impl Sun {
             SunriseAndSet::Daylight(_, sunset) => sunset,
             _ => unimplemented!(),
         };
-        info!("last sunset:  {}", last_sunset.with_timezone(&Local));
 
         let (sunrise, sunset) = match spa::calc_sunrise_and_set(utc_now, lat, lon)? {
             SunriseAndSet::Daylight(sunrise, sunset) => (sunrise, sunset),
             _ => unimplemented!(),
         };
-        halfway(last_sunset, sunrise);
-        info!("sunrise:      {}", sunrise.with_timezone(&Local));
-        halfway(sunrise, sunset);
-        info!("sunset:       {}", sunset.with_timezone(&Local));
 
         let next_sunrise = match spa::calc_sunrise_and_set(utc_now + Duration::days(1), lat, lon)? {
             spa::SunriseAndSet::Daylight(sunrise, _) => sunrise,
             _ => unimplemented!(),
         };
-        halfway(sunset, next_sunrise);
-        info!("next sunrise: {}", next_sunrise.with_timezone(&Local));
 
         debug_assert!(last_sunset < sunrise);
         debug_assert!(sunrise < sunset);
@@ -325,12 +304,6 @@ impl fmt::Display for TimePeriod {
             TimePeriod::DayTime => write!(f, "\u{1f3d9} Daytime"),
         }
     }
-}
-
-/// Format duration as a human readable string
-fn format_duration(duration: Duration) -> String {
-    use chrono_humanize::{Accuracy, HumanTime, Tense};
-    HumanTime::from(duration).to_text_en(Accuracy::Precise, Tense::Present)
 }
 
 #[cfg(test)]
