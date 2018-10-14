@@ -23,10 +23,10 @@ extern crate lazy_static;
 use chrono::{DateTime, Duration, Local, Timelike, Utc};
 use std::fmt;
 
-/// Result type alias to handle errors
+/// Result type alias to handle errors.
 type Result<T> = std::result::Result<T, failure::Error>;
 
-/// Initialize logging
+/// Initialize logging.
 fn setup() {
     env_logger::Builder::from_default_env()
         .default_format_module_path(false)
@@ -35,7 +35,7 @@ fn setup() {
     info!("logging enabled");
 }
 
-/// Main entry point
+/// Main entry point.
 pub fn run() -> Result<()> {
     setup();
 
@@ -85,7 +85,7 @@ fn get_image(
     (offset + elapsed_time * image_count / duration) % wallpaper.count
 }
 
-/// Program configuration
+/// Program configuration.
 ///
 /// Example config:
 /// ```toml
@@ -94,13 +94,13 @@ fn get_image(
 /// lat = 12.3456
 /// lon = -65.4321
 ///
-/// # these are the defaults
+/// # these are the defaults:
 /// [wallpaper]
-/// # The total number of images
+/// # The total number of images.
 /// count = 16
-/// # The image to use just as the sun appears
+/// # The image to use just as the sun appears.
 /// daybreak = 2
-/// # The image to use just as the moon shows up
+/// # The image to use just as the moon shows up.
 /// nightfall = 13
 /// ```
 #[derive(Debug, Deserialize)]
@@ -114,18 +114,18 @@ pub struct Config {
     pub lon: f64,
     /// Wallpaper configuration
     ///
-    /// Defaults to Mojave wallpaper
+    /// Defaults to Mojave wallpaper.
     #[serde(default)]
     pub wallpaper: Wallpaper,
 }
 
-/// Get the current time in UTC
+/// Get the current time in UTC.
 fn default_time() -> DateTime<Utc> {
     Utc::now()
 }
 
 impl Config {
-    /// Read a config file from `~/.config/dynamic_wallpaper/config.toml`
+    /// Read a config file from `~/.config/dynamic_wallpaper/config.toml`.
     fn new() -> Result<Self> {
         use std::fs;
 
@@ -142,19 +142,19 @@ impl Config {
     }
 }
 
-/// Wallpaper configuration settings
+/// Wallpaper configuration settings.
 #[derive(Debug, Deserialize)]
 pub struct Wallpaper {
-    /// Number of images to cycle through
+    /// Number of images to cycle through.
     pub count: i64,
-    /// Image index to use at the beginning of day time
+    /// Image index to use at the beginning of day time.
     pub daybreak: i64,
-    /// Image index to use at the beginning of night time
+    /// Image index to use at the beginning of night time.
     pub nightfall: i64,
 }
 
 impl Wallpaper {
-    /// Number of images for the time period
+    /// Number of images for the time period.
     fn image_count(&self, time_period: &TimePeriod) -> i64 {
         if self.daybreak < self.nightfall {
             if *time_period == TimePeriod::DayTime {
@@ -188,21 +188,21 @@ impl Default for Wallpaper {
     }
 }
 
-/// Sunrise and sunset times for yesterday, today and tomorrow
+/// Sunrise and sunset times for yesterday, today and tomorrow.
 #[derive(Debug)]
 struct Sun {
-    /// Yesterday's sunset
+    /// Yesterday's sunset.
     last_sunset: DateTime<Utc>,
-    /// Today's sunrise
+    /// Today's sunrise.
     sunrise: DateTime<Utc>,
-    /// Today's sunset
+    /// Today's sunset.
     sunset: DateTime<Utc>,
-    /// Tomorrow's sunrise
+    /// Tomorrow's sunrise.
     next_sunrise: DateTime<Utc>,
 }
 
 impl Sun {
-    /// Get the sunrise and sunset times depending on the current time and location
+    /// Get the sunrise and sunset times depending on the current time and location.
     fn new(now: DateTime<Utc>, lat: f64, lon: f64) -> Result<Self> {
         use spa::SunriseAndSet;
 
@@ -264,7 +264,7 @@ impl Sun {
         })
     }
 
-    /// Get the sunrise/sunset pairs depending on the time period
+    /// Get the sunrise/sunset pairs depending on the time period.
     fn start_end(&self, time_period: &TimePeriod) -> (DateTime<Utc>, DateTime<Utc>) {
         match time_period {
             TimePeriod::BeforeSunrise => (self.last_sunset, self.sunrise),
@@ -292,20 +292,20 @@ impl fmt::Display for Sun {
     }
 }
 
-/// Time of day according to the sun
+/// Time of day according to the sun.
 #[derive(Debug, PartialEq)]
 enum TimePeriod {
-    /// After the sun has set
+    /// After the sun has set.
     AfterSunset,
-    /// Before the sun has risen
+    /// Before the sun has risen.
     BeforeSunrise,
-    /// Between sunrise and sunset
+    /// Between sunrise and sunset.
     DayTime,
 }
 
 impl TimePeriod {
     /// Determine the time period depending on the given time and the times for
-    /// sunrise and sunset
+    /// sunrise and sunset.
     fn new(now: &DateTime<Utc>, sunrise: &DateTime<Utc>, sunset: &DateTime<Utc>) -> Self {
         if *now > *sunset {
             TimePeriod::AfterSunset
