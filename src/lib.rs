@@ -27,7 +27,7 @@ use std::fmt;
 type Result<T> = std::result::Result<T, failure::Error>;
 
 /// Initialize logging
-fn init() {
+fn setup() {
     env_logger::Builder::from_default_env()
         .default_format_module_path(false)
         .default_format_timestamp(false)
@@ -37,7 +37,7 @@ fn init() {
 
 /// Main entry point
 pub fn run() -> Result<()> {
-    init();
+    setup();
 
     let config = Config::new()?;
     let now = config.now;
