@@ -48,6 +48,7 @@ pub fn run() -> Result<()> {
 
     let time_period = TimePeriod::new(&now, &sun.sunrise, &sun.sunset);
     info!("{}", time_period);
+    sun.time_since_last_and_next_change(now, &time_period);
 
     let image = get_image(now, &sun, &time_period, &wallpaper);
 
@@ -207,8 +208,8 @@ impl Sun {
             .and_hms(12, 0, 0)
             .with_timezone(&Utc);
 
-        info!("now:          {}", now.with_timezone(&Local));
-        debug!("UTC now:      {}", utc_now);
+        info!("now:     {}", now.with_timezone(&Local));
+        debug!("UTC now: {}", utc_now);
 
         debug_assert!(Utc::today() - Duration::days(1) <= now.date());
         debug_assert!(Utc::today() + Duration::days(1) >= now.date());
@@ -241,6 +242,32 @@ impl Sun {
             sunset,
             next_sunrise,
         })
+    }
+
+    fn time_since_last_and_next_change(&self, now: DateTime<Utc>, time_period: &TimePeriod) {
+        use chrono_humanize::{Accuracy, HumanTime, Tense};
+
+        let (start, end) = self.start_end(time_period);
+        let (time_since, time_until): (HumanTime, HumanTime) =
+            ((now - start).into(), (end - now).into());
+
+        // complete the sentence: "Time since {}, time until {}".
+        let (since_when, until_when) = match *time_period {
+            TimePeriod::BeforeSunrise => ("Yesterday's sunset", "Today's sunrise"),
+            TimePeriod::DayTime => ("Today's sunrise", "Sunset"),
+            TimePeriod::AfterSunset => ("Today's sunset", "Tomorrow's sunrise"),
+        };
+
+        info!(
+            "{} was {} ago.",
+            since_when,
+            time_since.to_text_en(Accuracy::Precise, Tense::Present)
+        );
+        info!(
+            "{} is {} from now.",
+            until_when,
+            time_until.to_text_en(Accuracy::Precise, Tense::Present)
+        );
     }
 
     /// Get the sunrise/sunset pairs depending on the time period.
