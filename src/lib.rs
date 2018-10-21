@@ -202,32 +202,34 @@ impl Sun {
     fn new(now: DateTime<Utc>, lat: f64, lon: f64) -> Result<Self> {
         use spa::SunriseAndSet;
 
-        let utc_now = now
+        let noon_today = now
             .with_timezone(&Local)
             .date()
             .and_hms(12, 0, 0)
             .with_timezone(&Utc);
 
         info!("now:     {}", now.with_timezone(&Local));
-        debug!("UTC now: {}", utc_now);
+        debug!("UTC now: {}", noon_today);
 
         debug_assert!(Utc::today() - Duration::days(1) <= now.date());
         debug_assert!(Utc::today() + Duration::days(1) >= now.date());
 
-        let last_sunset = match spa::calc_sunrise_and_set(utc_now - Duration::days(1), lat, lon)? {
+        let last_sunset = match spa::calc_sunrise_and_set(noon_today - Duration::days(1), lat, lon)?
+        {
             SunriseAndSet::Daylight(_, sunset) => sunset,
             _ => unimplemented!(),
         };
 
-        let (sunrise, sunset) = match spa::calc_sunrise_and_set(utc_now, lat, lon)? {
+        let (sunrise, sunset) = match spa::calc_sunrise_and_set(noon_today, lat, lon)? {
             SunriseAndSet::Daylight(sunrise, sunset) => (sunrise, sunset),
             _ => unimplemented!(),
         };
 
-        let next_sunrise = match spa::calc_sunrise_and_set(utc_now + Duration::days(1), lat, lon)? {
-            spa::SunriseAndSet::Daylight(sunrise, _) => sunrise,
-            _ => unimplemented!(),
-        };
+        let next_sunrise =
+            match spa::calc_sunrise_and_set(noon_today + Duration::days(1), lat, lon)? {
+                spa::SunriseAndSet::Daylight(sunrise, _) => sunrise,
+                _ => unimplemented!(),
+            };
 
         debug_assert!(last_sunset < sunrise);
         debug_assert!(sunrise < sunset);
