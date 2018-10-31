@@ -22,6 +22,7 @@ extern crate lazy_static;
 
 use chrono::{DateTime, Duration, Local, Timelike, Utc};
 use std::fmt;
+use std::path::PathBuf;
 
 /// Result type alias to handle errors.
 type Result<T> = std::result::Result<T, failure::Error>;
@@ -39,7 +40,12 @@ fn setup() {
 pub fn run() -> Result<()> {
     setup();
 
-    let config = Config::new()?;
+    let filename = dirs::config_dir()
+        .expect("Couldn't find $XDG_CONFIG_DIR (~/.config/)")
+        .join("dynamic_wallpaper")
+        .join("config.toml");
+
+    let config = Config::from_file(filename)?;
     let now = config.now;
     let wallpaper = config.wallpaper;
 
@@ -122,15 +128,8 @@ fn default_time() -> DateTime<Utc> {
 
 impl Config {
     /// Read a config file from `~/.config/dynamic_wallpaper/config.toml`.
-    fn new() -> Result<Self> {
-        use std::fs;
-
-        let filename = dirs::config_dir()
-            .expect("Couldn't find $XDG_CONFIG_DIR (~/.config/)")
-            .join("dynamic_wallpaper")
-            .join("config.toml");
-
-        let contents = fs::read_to_string(filename)?;
+    fn from_file(filename: PathBuf) -> Result<Self> {
+        let contents = std::fs::read_to_string(filename)?;
 
         let config: Self = toml::from_str(&contents)?;
 
