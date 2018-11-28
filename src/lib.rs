@@ -27,18 +27,10 @@ use std::path::PathBuf;
 /// Result type alias to handle errors.
 type Result<T> = std::result::Result<T, failure::Error>;
 
-/// Initialize logging.
-fn setup() {
-    env_logger::Builder::from_default_env()
-        .default_format_module_path(false)
-        .default_format_timestamp(false)
-        .init();
-    info!("logging enabled");
-}
-
 /// Main entry point.
 pub fn run() -> Result<()> {
-    setup();
+    env_logger::init();
+    info!("logging enabled");
 
     let filename = dirs::config_dir()
         .expect("Couldn't find $XDG_CONFIG_DIR (~/.config/)")
