@@ -88,7 +88,7 @@ fn get_image(
 /// # extern crate dynamic_wallpaper;
 /// # use dynamic_wallpaper::Config;
 /// # fn main() {
-/// # toml::from_str::<Config>(r#"
+/// # let config: Config = toml::from_str(r#"
 /// ## useful for debugging; defaults to now. Needs to be in RFC3339 format.
 /// #now = "2018-08-31T01:45:00.123456789-05:00"
 /// lat = 12.3456
@@ -103,6 +103,7 @@ fn get_image(
 /// ## The image to use just as the moon shows up.
 /// nightfall = 13
 /// # "#).expect("Can't parse example config");
+/// # config.validate().expect("Example config invalid");
 /// # }
 /// ```
 #[derive(Debug, Deserialize)]
