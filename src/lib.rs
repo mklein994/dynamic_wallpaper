@@ -139,7 +139,7 @@ impl Config {
         Ok(config)
     }
 
-    pub fn validate(&self) -> Result<()> {
+    pub(crate) fn validate(&self) -> Result<()> {
         self.wallpaper.validate()?;
         Ok(())
     }
