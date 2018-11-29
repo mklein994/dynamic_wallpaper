@@ -82,21 +82,28 @@ fn get_image(
 
 /// Program configuration.
 ///
-/// Example config:
-/// ```toml
-/// # useful for debugging; defaults to now. Needs to be in RFC3339 format.
+/// # Example
+/// ```
+/// # extern crate toml;
+/// # extern crate dynamic_wallpaper;
+/// # use dynamic_wallpaper::Config;
+/// # fn main() {
+/// # toml::from_str::<Config>(r#"
+/// ## useful for debugging; defaults to now. Needs to be in RFC3339 format.
 /// #now = "2018-08-31T01:45:00.123456789-05:00"
 /// lat = 12.3456
 /// lon = -65.4321
 ///
-/// # these are the defaults:
+/// ## these are the defaults:
 /// [wallpaper]
-/// # The total number of images.
+/// ## The total number of images.
 /// count = 16
-/// # The image to use just as the sun appears.
+/// ## The image to use just as the sun appears.
 /// daybreak = 2
-/// # The image to use just as the moon shows up.
+/// ## The image to use just as the moon shows up.
 /// nightfall = 13
+/// # "#).expect("Can't parse example config");
+/// # }
 /// ```
 #[derive(Debug, Deserialize)]
 pub struct Config {
