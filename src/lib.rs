@@ -7,6 +7,7 @@ extern crate chrono;
 extern crate chrono_humanize;
 extern crate dirs;
 extern crate env_logger;
+#[macro_use]
 extern crate failure;
 #[macro_use]
 extern crate log;
@@ -125,7 +126,14 @@ impl Config {
 
         let config: Self = toml::from_str(&contents)?;
 
+        config.validate()?;
+
         Ok(config)
+    }
+
+    fn validate(&self) -> Result<()> {
+        self.wallpaper.validate()?;
+        Ok(())
     }
 }
 
@@ -141,18 +149,24 @@ pub struct Wallpaper {
 }
 
 impl Wallpaper {
+    fn validate(&self) -> Result<()> {
+        if self.daybreak > self.nightfall {
+            return Err(format_err!("daybreak needs to be greater than nightfall"));
+        }
+
+        if self.daybreak > self.count || self.nightfall > self.count {
+            return Err(format_err!("wallpaper.count needs to be larger than wallpaper.daybreak and wallpaper.nightfall"));
+        }
+
+        Ok(())
+    }
+
     /// Number of images for the time period.
     fn image_count(&self, time_period: &TimePeriod) -> i64 {
-        if self.daybreak < self.nightfall {
-            if *time_period == TimePeriod::DayTime {
-                self.nightfall - self.daybreak
-            } else {
-                i64::abs(self.count - self.nightfall + self.daybreak) % self.count
-            }
-        } else if *time_period == TimePeriod::DayTime {
-            i64::abs(self.count - self.daybreak + self.nightfall) % self.count
+        if *time_period == TimePeriod::DayTime {
+            self.nightfall - self.daybreak
         } else {
-            i64::abs(self.nightfall - self.daybreak)
+            i64::abs(self.count - self.nightfall + self.daybreak) % self.count
         }
     }
 
@@ -362,72 +376,6 @@ mod tests {
     fn image_count_after_sunset() {
         let image_count = WALLPAPER.image_count(&TimePeriod::AfterSunset);
         assert_eq!(5, image_count);
-    }
-
-    #[test]
-    fn image_count_daytime_daybreak_greater_than_nightfall() {
-        let wallpaper = Wallpaper {
-            count: 16,
-            daybreak: 13,
-            nightfall: 2,
-        };
-        let image_count = wallpaper.image_count(&TimePeriod::DayTime);
-        assert_eq!(5, image_count);
-    }
-
-    #[test]
-    fn image_count_before_sunrise_daybreak_greater_than_nightfall() {
-        let wallpaper = Wallpaper {
-            count: 16,
-            daybreak: 13,
-            nightfall: 2,
-        };
-        let image_count = wallpaper.image_count(&TimePeriod::BeforeSunrise);
-        assert_eq!(11, image_count);
-    }
-
-    #[test]
-    fn image_count_after_sunset_daybreak_greater_than_nightfall() {
-        let wallpaper = Wallpaper {
-            count: 16,
-            daybreak: 13,
-            nightfall: 2,
-        };
-        let image_count = wallpaper.image_count(&TimePeriod::AfterSunset);
-        assert_eq!(11, image_count);
-    }
-
-    #[test]
-    fn image_count_daytime_daybreak_is_count() {
-        let wallpaper = Wallpaper {
-            count: 16,
-            daybreak: 16,
-            nightfall: 2,
-        };
-        let image_count = wallpaper.image_count(&TimePeriod::DayTime);
-        assert_eq!(2, image_count);
-    }
-
-    #[test]
-    fn image_count_before_sunrise_daybreak_is_count() {
-        let wallpaper = Wallpaper {
-            count: 16,
-            daybreak: 16,
-            nightfall: 2,
-        };
-        let image_count = wallpaper.image_count(&TimePeriod::BeforeSunrise);
-        assert_eq!(14, image_count);
-    }
-
-    #[test]
-    fn image_count_after_sunset_daybreak_is_count() {
-        let wallpaper = Wallpaper {
-            count: 16,
-            daybreak: 16,
-            nightfall: 2,
-        };
-        let image_count = wallpaper.image_count(&TimePeriod::AfterSunset);
-        assert_eq!(14, image_count);
     }
 
     #[test]
