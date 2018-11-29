@@ -623,4 +623,75 @@ mod tests {
         );
     }
 
+    #[test]
+    fn firewatch_wallpaper_after_sunset() {
+        let wallpaper = Wallpaper {
+            count: 4,
+            daybreak: 1,
+            nightfall: 4,
+        };
+
+        let now = SUN.sunset + Duration::hours(1);
+
+        let image = get_image(now, &SUN, &TimePeriod::AfterSunset, &wallpaper);
+        assert_eq!(4, image);
+    }
+
+    #[test]
+    fn firewatch_wallpaper_before_sunrise() {
+        let wallpaper = Wallpaper {
+            count: 4,
+            daybreak: 1,
+            nightfall: 4,
+        };
+
+        let now = SUN.sunrise - Duration::hours(1);
+
+        let image = get_image(now, &SUN, &TimePeriod::BeforeSunrise, &wallpaper);
+        assert_eq!(4, image);
+    }
+
+    #[test]
+    fn firewatch_wallpaper_sunrise() {
+        let wallpaper = Wallpaper {
+            count: 4,
+            daybreak: 1,
+            nightfall: 4,
+        };
+
+        let now = SUN.sunrise + Duration::hours(1);
+
+        let image = get_image(now, &SUN, &TimePeriod::DayTime, &wallpaper);
+        assert_eq!(1, image);
+    }
+
+    #[test]
+    fn firewatch_wallpaper_sunset() {
+        let wallpaper = Wallpaper {
+            count: 4,
+            daybreak: 1,
+            nightfall: 4,
+        };
+
+        let now = SUN.sunset - Duration::hours(1);
+
+        let image = get_image(now, &SUN, &TimePeriod::DayTime, &wallpaper);
+        assert_eq!(3, image);
+    }
+
+    #[test]
+    fn firewatch_wallpaper_solar_noon() {
+        let wallpaper = Wallpaper {
+            count: 4,
+            daybreak: 1,
+            nightfall: 4,
+        };
+
+        let now = SUN.sunrise
+            + Duration::nanoseconds((SUN.sunset - SUN.sunrise).num_nanoseconds().unwrap() / 2);
+
+        let image = get_image(now, &SUN, &TimePeriod::DayTime, &wallpaper);
+        assert_eq!(2, image);
+    }
+
 }
