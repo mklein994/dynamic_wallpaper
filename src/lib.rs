@@ -524,10 +524,24 @@ mod tests {
         }
 
         #[test]
+        fn after_sunrise() {
+            let now = SUN.sunrise + Duration::hours(1);
+            let image = get_image(now, &SUN, TimePeriod::DayTime, &WALLPAPER);
+            assert_eq!(2, image);
+        }
+
+        #[test]
         fn just_past_sunrise() {
             let now = SUN.sunrise + Duration::nanoseconds(1);
             let image = get_image(now, &SUN, TimePeriod::DayTime, &WALLPAPER);
             assert_eq!(2, image);
+        }
+
+        #[test]
+        fn before_sunrise() {
+            let now = SUN.sunrise - Duration::hours(1);
+            let image = get_image(now, &SUN, TimePeriod::BeforeSunrise, &WALLPAPER);
+            assert_eq!(1, image);
         }
 
         #[test]
@@ -539,11 +553,25 @@ mod tests {
         }
 
         #[test]
+        fn before_sunset() {
+            let now = SUN.sunset - Duration::hours(1);
+            let image = get_image(now, &SUN, TimePeriod::DayTime, &WALLPAPER);
+            assert_eq!(12, image);
+        }
+
+        #[test]
         fn just_before_sunset() {
             let now = SUN.sunset - Duration::nanoseconds(1);
             debug_assert!(now < SUN.sunset);
             let image = get_image(now, &SUN, TimePeriod::DayTime, &WALLPAPER);
             assert_eq!(12, image);
+        }
+
+        #[test]
+        fn past_sunset() {
+            let now = SUN.sunset + Duration::hours(1);
+            let image = get_image(now, &SUN, TimePeriod::AfterSunset, &WALLPAPER);
+            assert_eq!(13, image);
         }
 
         #[test]
