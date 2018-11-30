@@ -309,11 +309,17 @@ impl fmt::Display for Sun {
 /// Time of day according to the sun.
 #[derive(Debug, PartialEq, Copy, Clone)]
 enum TimePeriod {
-    /// After the sun has set.
+    /// After the sun has set, including sunset itself.
+    ///
+    /// Marks time starting at sunset until but not including midnight.
     AfterSunset,
     /// Before the sun has risen.
+    ///
+    /// Marks time starting at midnight until but not including sunrise.
     BeforeSunrise,
     /// Between sunrise and sunset.
+    ///
+    /// Marks time starting at sunrise until but not including sunset.
     DayTime,
 }
 
