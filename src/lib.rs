@@ -355,14 +355,14 @@ mod tests {
         };
     }
 
-    const WALLPAPER: Wallpaper = Wallpaper {
-        count: 16,
-        daybreak: 2,
-        nightfall: 13,
-    };
-
     mod image_count_tests {
         use super::*;
+
+        const WALLPAPER: Wallpaper = Wallpaper {
+            count: 16,
+            daybreak: 2,
+            nightfall: 13,
+        };
 
         #[test]
         fn daytime() {
@@ -505,6 +505,12 @@ mod tests {
     mod get_image_tests {
         use super::*;
 
+        const WALLPAPER: Wallpaper = Wallpaper {
+            count: 16,
+            daybreak: 2,
+            nightfall: 13,
+        };
+
         #[test]
         fn sunrise() {
             let image = get_image(SUN.sunrise, &SUN, TimePeriod::DayTime, &WALLPAPER);
@@ -551,39 +557,30 @@ mod tests {
     mod offset_tests {
         use super::*;
 
+        const WALLPAPER: Wallpaper = Wallpaper {
+            count: 10,
+            daybreak: 2,
+            nightfall: 7,
+        };
+
         #[test]
         fn daytime() {
-            let wallpaper = Wallpaper {
-                count: 10,
-                daybreak: 2,
-                nightfall: 7,
-            };
-            assert_eq!(wallpaper.daybreak, wallpaper.offset(TimePeriod::DayTime));
+            assert_eq!(WALLPAPER.daybreak, WALLPAPER.offset(TimePeriod::DayTime));
         }
 
         #[test]
         fn after_sunset() {
-            let wallpaper = Wallpaper {
-                count: 10,
-                daybreak: 2,
-                nightfall: 7,
-            };
             assert_eq!(
-                wallpaper.nightfall,
-                wallpaper.offset(TimePeriod::AfterSunset)
+                WALLPAPER.nightfall,
+                WALLPAPER.offset(TimePeriod::AfterSunset)
             );
         }
 
         #[test]
         fn before_sunrise() {
-            let wallpaper = Wallpaper {
-                count: 10,
-                daybreak: 2,
-                nightfall: 7,
-            };
             assert_eq!(
-                wallpaper.nightfall,
-                wallpaper.offset(TimePeriod::BeforeSunrise)
+                WALLPAPER.nightfall,
+                WALLPAPER.offset(TimePeriod::BeforeSunrise)
             );
         }
     }
@@ -591,74 +588,50 @@ mod tests {
     mod firewatch_tests {
         use super::*;
 
+        const WALLPAPER: Wallpaper = Wallpaper {
+            count: 4,
+            daybreak: 1,
+            nightfall: 4,
+        };
+
         #[test]
         fn after_sunset() {
-            let wallpaper = Wallpaper {
-                count: 4,
-                daybreak: 1,
-                nightfall: 4,
-            };
-
             let now = SUN.sunset + Duration::hours(1);
 
-            let image = get_image(now, &SUN, TimePeriod::AfterSunset, &wallpaper);
+            let image = get_image(now, &SUN, TimePeriod::AfterSunset, &WALLPAPER);
             assert_eq!(4, image);
         }
 
         #[test]
         fn before_sunrise() {
-            let wallpaper = Wallpaper {
-                count: 4,
-                daybreak: 1,
-                nightfall: 4,
-            };
-
             let now = SUN.sunrise - Duration::hours(1);
 
-            let image = get_image(now, &SUN, TimePeriod::BeforeSunrise, &wallpaper);
+            let image = get_image(now, &SUN, TimePeriod::BeforeSunrise, &WALLPAPER);
             assert_eq!(4, image);
         }
 
         #[test]
         fn sunrise() {
-            let wallpaper = Wallpaper {
-                count: 4,
-                daybreak: 1,
-                nightfall: 4,
-            };
-
             let now = SUN.sunrise + Duration::hours(1);
 
-            let image = get_image(now, &SUN, TimePeriod::DayTime, &wallpaper);
+            let image = get_image(now, &SUN, TimePeriod::DayTime, &WALLPAPER);
             assert_eq!(1, image);
         }
 
         #[test]
         fn sunset() {
-            let wallpaper = Wallpaper {
-                count: 4,
-                daybreak: 1,
-                nightfall: 4,
-            };
-
             let now = SUN.sunset - Duration::hours(1);
 
-            let image = get_image(now, &SUN, TimePeriod::DayTime, &wallpaper);
+            let image = get_image(now, &SUN, TimePeriod::DayTime, &WALLPAPER);
             assert_eq!(3, image);
         }
 
         #[test]
         fn solar_noon() {
-            let wallpaper = Wallpaper {
-                count: 4,
-                daybreak: 1,
-                nightfall: 4,
-            };
-
             let now = SUN.sunrise
                 + Duration::nanoseconds((SUN.sunset - SUN.sunrise).num_nanoseconds().unwrap() / 2);
 
-            let image = get_image(now, &SUN, TimePeriod::DayTime, &wallpaper);
+            let image = get_image(now, &SUN, TimePeriod::DayTime, &WALLPAPER);
             assert_eq!(2, image);
         }
     }
