@@ -136,7 +136,8 @@ impl Config {
         Ok(config)
     }
 
-    pub(crate) fn validate(&self) -> Result<()> {
+    #[doc(hidden)]
+    pub fn validate(&self) -> Result<()> {
         self.wallpaper.validate()?;
         Ok(())
     }
