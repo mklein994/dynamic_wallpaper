@@ -631,6 +631,14 @@ mod tests {
         }
 
         #[test]
+        fn sunrise() {
+            let now = SUN.sunrise;
+
+            let image = get_image(now, &SUN, TimePeriod::DayTime, &WALLPAPER);
+            assert_eq!(1, image);
+        }
+
+        #[test]
         fn after_sunrise() {
             let now = SUN.sunrise + Duration::hours(1);
 
@@ -652,6 +660,14 @@ mod tests {
 
             let image = get_image(now, &SUN, TimePeriod::DayTime, &WALLPAPER);
             assert_eq!(3, image);
+        }
+
+        #[test]
+        fn sunset() {
+            let now = SUN.sunset;
+
+            let image = get_image(now, &SUN, TimePeriod::AfterSunset, &WALLPAPER);
+            assert_eq!(4, image);
         }
 
         #[test]
