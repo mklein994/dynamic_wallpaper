@@ -103,10 +103,13 @@ pub struct Config {
     /// [here](chrono::DateTime::parse_from_rfc3339) for details.
     #[serde(default = "default_time")]
     pub now: DateTime<Utc>,
+
     /// latitude
     pub lat: f64,
+
     /// longitude
     pub lon: f64,
+
     /// Wallpaper configuration
     ///
     /// Defaults to Mojave wallpaper.
@@ -153,8 +156,10 @@ impl Config {
 pub struct Wallpaper {
     /// Number of images to cycle through.
     pub count: i64,
+
     /// Image index to use at the beginning of day time.
     pub daybreak: i64,
+
     /// Image index to use at the beginning of night time.
     pub nightfall: i64,
 }
@@ -205,10 +210,13 @@ impl Default for Wallpaper {
 struct Sun {
     /// Yesterday's sunset.
     last_sunset: DateTime<Utc>,
+
     /// Today's sunrise.
     sunrise: DateTime<Utc>,
+
     /// Today's sunset.
     sunset: DateTime<Utc>,
+
     /// Tomorrow's sunrise.
     next_sunrise: DateTime<Utc>,
 }
@@ -323,10 +331,12 @@ enum TimePeriod {
     ///
     /// Marks time starting at sunset until but not including midnight.
     AfterSunset,
+
     /// Before the sun has risen.
     ///
     /// Marks time starting at midnight until but not including sunrise.
     BeforeSunrise,
+
     /// Between sunrise and sunset.
     ///
     /// Marks time starting at sunrise until but not including sunset.
