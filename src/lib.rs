@@ -133,6 +133,16 @@ impl Config {
 
     #[doc(hidden)]
     pub fn validate(&self) -> Result<()> {
+        if f64::abs(self.lat) > 90.0 {
+            return Err(format_err!("latitude must be between -90.0° and 90.0°"));
+        }
+
+        if f64::abs(self.lon) > 180.0 {
+            return Err(format_err!(
+                "longitude must be between -180.0° and 180.0°"
+            ));
+        }
+
         self.wallpaper.validate()?;
         Ok(())
     }
