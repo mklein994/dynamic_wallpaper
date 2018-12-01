@@ -238,11 +238,11 @@ impl Sun {
             .and_hms(12, 0, 0)
             .with_timezone(&Utc);
 
-        info!("now:     {}", now.with_timezone(&Local));
-        debug!("UTC now: {}", noon_today);
+        info!("now:               {}", now.with_timezone(&Local));
+        debug!("noon today in UTC: {}", noon_today);
 
-        debug_assert!(Utc::today() - Duration::days(1) <= now.date());
-        debug_assert!(Utc::today() + Duration::days(1) >= now.date());
+        debug_assert!(Local::today().pred() <= now.with_timezone(&Local).date());
+        debug_assert!(Local::today().succ() >= now.with_timezone(&Local).date());
 
         let last_sunset = match spa::calc_sunrise_and_set(noon_today - Duration::days(1), lat, lon)?
         {
