@@ -226,6 +226,12 @@ impl Sun {
     fn new(now: DateTime<Utc>, lat: f64, lon: f64) -> Result<Self> {
         use spa::SunriseAndSet;
 
+        // Ensure that the time we use to calculate yesterday's sunset and tomorrow's sunrise is at
+        // noon today before converting to UTC. The goal is to use a time in `TimePeriod::DayTime`
+        // to calculate with.
+        //
+        // If we didn't do this, converting to UTC might change the date and get the wrong sunrise
+        // and sunset times.
         let noon_today = now
             .with_timezone(&Local)
             .date()
