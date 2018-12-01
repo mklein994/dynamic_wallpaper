@@ -257,7 +257,7 @@ impl Sun {
 
         let next_sunrise =
             match spa::calc_sunrise_and_set(noon_today + Duration::days(1), lat, lon)? {
-                spa::SunriseAndSet::Daylight(sunrise, _) => sunrise,
+                SunriseAndSet::Daylight(sunrise, _) => sunrise,
                 _ => unimplemented!(),
             };
 
