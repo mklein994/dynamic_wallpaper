@@ -261,9 +261,24 @@ impl Sun {
                 _ => unimplemented!(),
             };
 
-        debug_assert!(last_sunset < sunrise);
-        debug_assert!(sunrise < sunset);
-        debug_assert!(sunset < next_sunrise);
+        debug_assert!(
+            last_sunset < sunrise,
+            "last_sunset < sunrise failed: {} < {}",
+            last_sunset,
+            sunrise
+        );
+        debug_assert!(
+            sunrise < sunset,
+            "sunrise < sunset failed: {} < {}",
+            sunrise,
+            sunset
+        );
+        debug_assert!(
+            sunset < next_sunrise,
+            "sunset < next_sunrise failed: {} < {}",
+            sunset,
+            next_sunrise
+        );
 
         debug_assert!(last_sunset.with_nanosecond(0).unwrap() <= now.with_nanosecond(0).unwrap());
         debug_assert!(now.with_nanosecond(0).unwrap() <= next_sunrise.with_nanosecond(0).unwrap());
