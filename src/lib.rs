@@ -47,7 +47,7 @@ impl fmt::Display for SpaError {
 
 impl From<spa::SpaError> for SpaError {
     fn from(err: spa::SpaError) -> Self {
-        Self(err)
+        SpaError(err)
     }
 }
 
