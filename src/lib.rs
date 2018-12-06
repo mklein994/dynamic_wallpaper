@@ -3,23 +3,15 @@
 //! Print the index of the image to use depending on the time of day and
 //! location. These are set in `~/.config/dynamic_wallpaper/config.toml`.
 
-extern crate chrono;
-extern crate chrono_humanize;
-extern crate dirs;
-extern crate env_logger;
 #[macro_use]
 extern crate failure;
 #[macro_use]
 extern crate log;
-extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-extern crate spa;
-extern crate toml;
 
 #[cfg(test)]
-#[macro_use]
-extern crate lazy_static;
+use lazy_static::lazy_static;
 
 use chrono::{DateTime, Duration, Local, Timelike, Utc};
 use failure::Fail;
@@ -34,7 +26,7 @@ type Result<T> = std::result::Result<T, failure::Error>;
 struct SpaError(spa::SpaError);
 
 impl fmt::Display for SpaError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.0 {
             spa::SpaError::BadParam => write!(
                 f,
@@ -354,7 +346,7 @@ impl Sun {
 }
 
 impl fmt::Display for Sun {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "Sun:\n{}\n{:<13} {}\n{:<13} {}\n{:<13} {}\n{:<13} {}",
@@ -405,7 +397,7 @@ impl TimePeriod {
 }
 
 impl fmt::Display for TimePeriod {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             TimePeriod::AfterSunset => write!(f, "\u{1f306} After Sunset"),
             TimePeriod::BeforeSunrise => write!(f, "\u{1f305} Before Sunrise"),

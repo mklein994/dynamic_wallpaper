@@ -1,7 +1,5 @@
 //! Dynamic Wallpaper
 
-extern crate dynamic_wallpaper;
-
 /// Main binary point of entry
 fn main() {
     if let Err(e) = dynamic_wallpaper::run() {
