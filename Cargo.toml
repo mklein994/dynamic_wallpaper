@@ -18,7 +18,7 @@ log = "0.4.6"
 serde = "1.0.80"
 serde_derive = "1.0.80"
 spa = "0.1.1"
-toml = "0.4.9"
+toml = "0.4.10"
 
 [dev-dependencies]
 lazy_static = "1.1.0"
