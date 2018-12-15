@@ -21,4 +21,4 @@ spa = "0.1.1"
 toml = "0.4.10"
 
 [dev-dependencies]
-lazy_static = "1.1.0"
+lazy_static = "1.2.0"
