@@ -10,6 +10,8 @@ extern crate log;
 #[macro_use]
 extern crate serde_derive;
 
+mod error;
+
 #[cfg(test)]
 use lazy_static::lazy_static;
 
