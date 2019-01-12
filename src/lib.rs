@@ -4,8 +4,6 @@
 //! location. These are set in `~/.config/dynamic_wallpaper/config.toml`.
 
 #[macro_use]
-extern crate failure;
-#[macro_use]
 extern crate log;
 #[macro_use]
 extern crate serde_derive;
@@ -15,35 +13,14 @@ mod error;
 #[cfg(test)]
 use lazy_static::lazy_static;
 
+use self::error::Error;
+
 use chrono::{DateTime, Duration, Local, Timelike, Utc};
-use failure::Fail;
 use std::fmt;
 use std::path::PathBuf;
 
 /// Result type alias to handle errors.
-type Result<T> = std::result::Result<T, failure::Error>;
-
-/// Wrapper type that implements [`Fail`](failure::Fail) for [`spa::SpaError`](spa::SpaError).
-#[derive(Debug, Fail)]
-struct SpaError(spa::SpaError);
-
-impl fmt::Display for SpaError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.0 {
-            spa::SpaError::BadParam => write!(
-                f,
-                "latitude must be between -90° and 90°, \
-                 and longitude must be between -180° and 180°"
-            ),
-        }
-    }
-}
-
-impl From<spa::SpaError> for SpaError {
-    fn from(err: spa::SpaError) -> Self {
-        SpaError(err)
-    }
-}
+type Result<T> = std::result::Result<T, Error>;
 
 /// Main entry point.
 pub fn run() -> Result<()> {
@@ -153,16 +130,6 @@ impl Config {
 
     #[doc(hidden)]
     pub fn validate(&self) -> Result<()> {
-        if f64::abs(self.lat) > 90.0 {
-            return Err(format_err!("latitude must be between -90.0° and 90.0°"));
-        }
-
-        if f64::abs(self.lon) > 180.0 {
-            return Err(format_err!(
-                "longitude must be between -180.0° and 180.0°"
-            ));
-        }
-
         self.wallpaper.validate()?;
         Ok(())
     }
@@ -184,11 +151,11 @@ pub struct Wallpaper {
 impl Wallpaper {
     fn validate(&self) -> Result<()> {
         if self.daybreak > self.nightfall {
-            return Err(format_err!("daybreak needs to be greater than nightfall"));
+            return Err(Error::Config("daybreak needs to be greater than nightfall"));
         }
 
         if self.daybreak > self.count || self.nightfall > self.count {
-            return Err(format_err!("wallpaper.count needs to be larger than wallpaper.daybreak and wallpaper.nightfall"));
+            return Err(Error::Config("wallpaper.count needs to be larger than wallpaper.daybreak and wallpaper.nightfall"));
         }
 
         Ok(())
@@ -261,25 +228,22 @@ impl Sun {
         debug_assert!(Local::today().pred() <= now.with_timezone(&Local).date());
         debug_assert!(Local::today().succ() >= now.with_timezone(&Local).date());
 
-        let last_sunset = match spa::calc_sunrise_and_set(noon_today - Duration::days(1), lat, lon)
-            .map_err(SpaError::from)?
+        let last_sunset = match spa::calc_sunrise_and_set(noon_today - Duration::days(1), lat, lon)?
         {
             SunriseAndSet::Daylight(_, sunset) => sunset,
             _ => unimplemented!(),
         };
 
-        let (sunrise, sunset) =
-            match spa::calc_sunrise_and_set(noon_today, lat, lon).map_err(SpaError::from)? {
-                SunriseAndSet::Daylight(sunrise, sunset) => (sunrise, sunset),
-                _ => unimplemented!(),
-            };
-
-        let next_sunrise = match spa::calc_sunrise_and_set(noon_today + Duration::days(1), lat, lon)
-            .map_err(SpaError::from)?
-        {
-            SunriseAndSet::Daylight(sunrise, _) => sunrise,
+        let (sunrise, sunset) = match spa::calc_sunrise_and_set(noon_today, lat, lon)? {
+            SunriseAndSet::Daylight(sunrise, sunset) => (sunrise, sunset),
             _ => unimplemented!(),
         };
+
+        let next_sunrise =
+            match spa::calc_sunrise_and_set(noon_today + Duration::days(1), lat, lon)? {
+                SunriseAndSet::Daylight(sunrise, _) => sunrise,
+                _ => unimplemented!(),
+            };
 
         debug_assert!(
             last_sunset < sunrise,
