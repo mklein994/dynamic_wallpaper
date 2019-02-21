@@ -13,13 +13,7 @@ impl fmt::Display for Error {
         match self {
             Error::Config(msg) => msg.fmt(f),
             Error::Io(err) => err.fmt(f),
-            // NOTE: This is only a wrapper around `spa::SpaError`, since that doesn't implement
-            // std::error::Error itself.
-            Error::SpaError(_) => write!(
-                f,
-                "latitude must be between -90° and 90°, and \
-                 longitude must be between -180° and 180°"
-            ),
+            Error::SpaError(err) => err.fmt(f),
             Error::Toml(err) => err.fmt(f),
         }
     }
