@@ -1,6 +1,33 @@
-image: "rust:latest"
+stages:
+  - fmt_check
+  - build
 
-test:cargo:
+.fmt_check_template: &fmt_check_definition
+  stage: fmt_check
+  script:
+    - cargo fmt -- --check
+
+.job_template: &build_definition
+  stage: build
   script:
     - rustc --version && cargo --version
-    - cargo test --all --verbose
+    - cargo build --verbose
+    - cargo test --verbose
+
+rust-latest:fmt_check:
+  <<: *fmt_check_definition
+  image: rust:latest
+
+rust-latest:build:
+  <<: *build_definition
+  image: rust:latest
+
+rust-nightly:fmt_check:
+  <<: *fmt_check_definition
+  image: rustlang/rust:nightly
+  allow_failure: true
+
+rust-nightly:build:
+  <<: *build_definition
+  image: rustlang/rust:nightly
+  allow_failure: true
