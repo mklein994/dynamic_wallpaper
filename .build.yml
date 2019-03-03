@@ -1,0 +1,21 @@
+image: archlinux
+sources:
+    - https://github.com/mklein994/dynamic_wallpaper
+tasks:
+    - rustup: |
+        curl -sSf -o rustup.sh "https://sh.rustup.rs"
+        sh ./rustup.sh -y
+        echo "source ~/.cargo/env" >> ~/.buildenv
+        source ~/.cargo/env
+        rustc --version
+        cargo --version
+    - fmt_check: |
+        rustup component add rustfmt
+        cd dynamic_wallpaper
+        cargo fmt -- --check
+    - build: |
+        cd dynamic_wallpaper
+        cargo build --verbose
+    - test: |
+        cd dynamic_wallpaper
+        cargo test --verbose
