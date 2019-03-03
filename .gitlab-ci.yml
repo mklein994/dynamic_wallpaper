@@ -5,6 +5,7 @@ stages:
 .fmt_check_template: &fmt_check_definition
   stage: fmt_check
   script:
+    - rustup component add rustfmt
     - cargo fmt -- --check
 
 .job_template: &build_definition
