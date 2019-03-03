@@ -2,7 +2,7 @@
 
 [![Travis CI](https://travis-ci.com/mklein994/dynamic_wallpaper.svg?branch=master)](https://travis-ci.com/mklein994/dynamic_wallpaper)
 [![GitLab CI](https://gitlab.com/mklein994/dynamic_wallpaper/badges/master/pipeline.svg)](https://gitlab.com/mklein994/dynamic_wallpaper/commits/master)
-[![builds.sr.ht status](https://builds.sr.ht/~mklein.svg?search=dynamic_wallpaper)](https://builds.sr.ht/~mklein?search=dynamic_wallpaper)
+[![builds.sr.ht status](https://builds.sr.ht/~mklein/dynamic_wallpaper.svg)](https://builds.sr.ht/~mklein/dynamic_wallpaper)
 
 Change your wallpaper depending on the time of day and the position of the sun.
 
