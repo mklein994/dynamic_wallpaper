@@ -3,6 +3,7 @@ sources:
     - https://github.com/mklein994/dynamic_wallpaper
 environment:
   PATH: '"~/.cargo/bin:$PATH"'
+  PROJECT_PATH: "dynamic_wallpaper"
 tasks:
     - rustup: |
         curl -sSf -o rustup.sh "https://sh.rustup.rs"
@@ -11,11 +12,11 @@ tasks:
         cargo --version
     - fmt_check: |
         rustup component add rustfmt
-        cd dynamic_wallpaper
+        cd $PROJECT_PATH
         cargo fmt -- --check
     - build: |
-        cd dynamic_wallpaper
+        cd $PROJECT_PATH
         cargo build --verbose
     - test: |
-        cd dynamic_wallpaper
+        cd $PROJECT_PATH
         cargo test --verbose
