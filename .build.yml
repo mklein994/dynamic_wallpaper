@@ -1,22 +1,22 @@
 image: archlinux
 sources:
-    - https://github.com/mklein994/dynamic_wallpaper
+  - https://github.com/mklein994/dynamic_wallpaper
 environment:
   PATH: '"~/.cargo/bin:$PATH"'
   PROJECT_PATH: "dynamic_wallpaper"
 tasks:
-    - rustup: |
-        curl -sSf -o rustup.sh "https://sh.rustup.rs"
-        sh ./rustup.sh -y
-        rustc --version
-        cargo --version
-    - fmt_check: |
-        rustup component add rustfmt
-        cd $PROJECT_PATH
-        cargo fmt -- --check
-    - build: |
-        cd $PROJECT_PATH
-        cargo build --verbose
-    - test: |
-        cd $PROJECT_PATH
-        cargo test --verbose
+  - rustup: |
+      curl -sSf -o rustup.sh "https://sh.rustup.rs"
+      sh ./rustup.sh -y
+      rustc --version
+      cargo --version
+  - fmt_check: |
+      rustup component add rustfmt
+      cd $PROJECT_PATH
+      cargo fmt -- --check
+  - build: |
+      cd $PROJECT_PATH
+      cargo build --verbose
+  - test: |
+      cd $PROJECT_PATH
+      cargo test --verbose
