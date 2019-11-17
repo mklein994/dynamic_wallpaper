@@ -16,6 +16,7 @@ use lazy_static::lazy_static;
 use self::error::Error;
 
 use chrono::{DateTime, Duration, Local, Timelike, Utc};
+use std::convert::TryFrom;
 use std::fmt;
 use std::path::PathBuf;
 
@@ -32,7 +33,7 @@ pub fn run() -> Result<()> {
         .join("dynamic_wallpaper")
         .join("config.toml");
 
-    let config = Config::from_file(filename)?;
+    let config = Config::try_from(filename)?;
     let now = config.now;
     let wallpaper = config.wallpaper;
 
@@ -115,8 +116,18 @@ fn default_time() -> DateTime<Utc> {
 }
 
 impl Config {
-    /// Read a config file from `~/.config/dynamic_wallpaper/config.toml`.
-    fn from_file(filename: PathBuf) -> Result<Self> {
+    #[doc(hidden)]
+    pub fn validate(&self) -> Result<()> {
+        self.wallpaper.validate()?;
+        Ok(())
+    }
+}
+
+impl TryFrom<PathBuf> for Config {
+    type Error = Error;
+
+    /// Try to read a config file from `~/.config/dynamic_wallpaper/config.toml`.
+    fn try_from(filename: PathBuf) -> Result<Self> {
         let contents = std::fs::read_to_string(filename)?;
 
         let config: Self = toml::from_str(&contents)?;
@@ -124,12 +135,6 @@ impl Config {
         config.validate()?;
 
         Ok(config)
-    }
-
-    #[doc(hidden)]
-    pub fn validate(&self) -> Result<()> {
-        self.wallpaper.validate()?;
-        Ok(())
     }
 }
 
