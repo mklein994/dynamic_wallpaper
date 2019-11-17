@@ -76,7 +76,6 @@ fn get_image(now: DateTime<Utc>, sun: &Sun, time_period: TimePeriod, wallpaper: 
 /// # extern crate toml;
 /// # extern crate dynamic_wallpaper;
 /// # use dynamic_wallpaper::Config;
-/// # fn main() {
 /// # let config: Config = toml::from_str(r#"
 /// lat = 12.3456
 /// lon = -65.4321
@@ -87,7 +86,6 @@ fn get_image(now: DateTime<Utc>, sun: &Sun, time_period: TimePeriod, wallpaper: 
 /// nightfall = 13
 /// # "#).expect("Can't parse example config");
 /// # config.validate().expect("Example config invalid");
-/// # }
 /// ```
 #[derive(Debug, Deserialize)]
 pub struct Config {
