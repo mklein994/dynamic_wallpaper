@@ -356,11 +356,11 @@ impl TimePeriod {
     /// sunrise and sunset.
     fn new(now: &DateTime<Utc>, sunrise: &DateTime<Utc>, sunset: &DateTime<Utc>) -> Self {
         if *now > *sunset {
-            TimePeriod::AfterSunset
+            Self::AfterSunset
         } else if *now >= *sunrise {
-            TimePeriod::DayTime
+            Self::DayTime
         } else {
-            TimePeriod::BeforeSunrise
+            Self::BeforeSunrise
         }
     }
 }
@@ -368,9 +368,9 @@ impl TimePeriod {
 impl fmt::Display for TimePeriod {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
-            TimePeriod::AfterSunset => write!(f, "\u{1f306} After Sunset"),
-            TimePeriod::BeforeSunrise => write!(f, "\u{1f305} Before Sunrise"),
-            TimePeriod::DayTime => write!(f, "\u{1f3d9} Daytime"),
+            Self::AfterSunset => write!(f, "\u{1f306} After Sunset"),
+            Self::BeforeSunrise => write!(f, "\u{1f305} Before Sunrise"),
+            Self::DayTime => write!(f, "\u{1f3d9} Daytime"),
         }
     }
 }
