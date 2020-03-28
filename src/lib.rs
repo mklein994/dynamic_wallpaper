@@ -5,8 +5,8 @@
 
 #[macro_use]
 extern crate log;
-#[macro_use]
-extern crate serde_derive;
+
+use serde::Deserialize;
 
 mod error;
 
@@ -74,8 +74,6 @@ fn get_image(now: DateTime<Utc>, sun: &Sun, time_period: TimePeriod, wallpaper: 
 ///
 /// # Example
 /// ```
-/// # extern crate toml;
-/// # extern crate dynamic_wallpaper;
 /// # use dynamic_wallpaper::Config;
 /// # let config: Config = toml::from_str(r#"
 /// lat = 12.3456
