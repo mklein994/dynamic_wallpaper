@@ -53,9 +53,9 @@ fn get_image(
 
     let image_count = wallpaper.image_count(time_period);
 
-    let (start, end) = sun.start_end(time_period);
-    let duration = (end - start).num_nanoseconds().unwrap();
-    let elapsed_time = (now - start).num_nanoseconds().unwrap();
+    let (dawn, dusk) = (sun.sunrise, sun.sunset);
+    let duration = (dusk - dawn).num_nanoseconds().unwrap();
+    let elapsed_time = (now - dawn).num_nanoseconds().unwrap();
 
     //  elapsed_time
     // ━━━━━━━━━━━━━━━
@@ -188,17 +188,11 @@ impl Default for Wallpaper {
 /// Sunrise and sunset times for yesterday, today and tomorrow.
 #[derive(Debug)]
 struct Sun {
-    /// Yesterday's sunset.
-    last_sunset: DateTime<Local>,
-
     /// Today's sunrise.
     sunrise: DateTime<Local>,
 
     /// Today's sunset.
     sunset: DateTime<Local>,
-
-    /// Tomorrow's sunrise.
-    next_sunrise: DateTime<Local>,
 }
 
 impl Sun {
@@ -214,38 +208,14 @@ impl Sun {
         // and sunset times.
         let noon_today = now.date().and_hms(12, 0, 0).with_timezone(&Utc);
 
-        let last_sunset = match spa::calc_sunrise_and_set(noon_today - Duration::days(1), lat, lon)?
-        {
-            SunriseAndSet::Daylight(_, sunset) => sunset,
-            _ => unimplemented!(),
-        };
-
         let (sunrise, sunset) = match spa::calc_sunrise_and_set(noon_today, lat, lon)? {
-            SunriseAndSet::Daylight(sunrise, sunset) => (sunrise, sunset),
+            SunriseAndSet::Daylight(sunrise, sunset) => {
+                (sunrise.with_timezone(&Local), sunset.with_timezone(&Local))
+            }
             _ => unimplemented!(),
         };
 
-        let next_sunrise =
-            match spa::calc_sunrise_and_set(noon_today + Duration::days(1), lat, lon)? {
-                SunriseAndSet::Daylight(sunrise, _) => sunrise,
-                _ => unimplemented!(),
-            };
-
-        Ok(Self {
-            last_sunset: last_sunset.with_timezone(&Local),
-            sunrise: sunrise.with_timezone(&Local),
-            sunset: sunset.with_timezone(&Local),
-            next_sunrise: next_sunrise.with_timezone(&Local),
-        })
-    }
-
-    /// Get the sunrise/sunset pairs depending on the time period.
-    fn start_end(&self, time_period: TimePeriod) -> (DateTime<Local>, DateTime<Local>) {
-        match time_period {
-            TimePeriod::BeforeSunrise => (self.last_sunset, self.sunrise),
-            TimePeriod::DayTime => (self.sunrise, self.sunset),
-            TimePeriod::AfterSunset => (self.sunset, self.next_sunrise),
-        }
+        Ok(Self { sunrise, sunset })
     }
 }
 
@@ -289,10 +259,8 @@ mod tests {
 
     lazy_static! {
         static ref SUN: Sun = Sun {
-            last_sunset: Local.ymd(2018, 8, 5).and_hms(21, 3, 24),
             sunrise: Local.ymd(2018, 8, 6).and_hms(6, 4, 25),
             sunset: Local.ymd(2018, 8, 6).and_hms(21, 1, 44),
-            next_sunrise: Local.ymd(2018, 8, 6).and_hms(6, 5, 52),
         };
     }
 
