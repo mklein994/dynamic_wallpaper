@@ -259,8 +259,8 @@ mod tests {
 
     lazy_static! {
         static ref SUN: Sun = Sun {
-            sunrise: Local.ymd(2018, 8, 6).and_hms(6, 4, 25),
-            sunset: Local.ymd(2018, 8, 6).and_hms(21, 1, 44),
+            sunrise: Local.ymd(2018, 8, 6).and_hms(6, 0, 0),
+            sunset: Local.ymd(2018, 8, 6).and_hms(20, 0, 0),
         };
     }
 
