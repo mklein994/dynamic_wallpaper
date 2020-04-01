@@ -3,9 +3,6 @@
 //! Print the index of the image to use depending on the time of day and
 //! location. These are set in `~/.config/dynamic_wallpaper/config.toml`.
 
-#[macro_use]
-extern crate log;
-
 use serde::Deserialize;
 
 mod error;
@@ -15,9 +12,8 @@ use lazy_static::lazy_static;
 
 use self::error::Error;
 
-use chrono::{DateTime, Duration, Local, Timelike, Utc};
+use chrono::{DateTime, Duration, Local, Utc};
 use std::convert::TryFrom;
-use std::fmt;
 use std::path::PathBuf;
 
 /// Result type alias to handle errors.
@@ -25,9 +21,6 @@ type Result<T> = std::result::Result<T, Error>;
 
 /// Main entry point.
 pub fn run() -> Result<()> {
-    env_logger::init();
-    info!("logging enabled");
-
     let filename = dirs::config_dir()
         .expect("Couldn't find $XDG_CONFIG_DIR (~/.config/)")
         .join("dynamic_wallpaper")
@@ -38,11 +31,8 @@ pub fn run() -> Result<()> {
     let wallpaper = config.wallpaper;
 
     let sun = Sun::new(now, config.lat, config.lon)?;
-    debug!("{}", sun);
 
     let time_period = TimePeriod::new(&now, &sun.sunrise, &sun.sunset);
-    info!("{}", time_period);
-    sun.time_since_last_and_next_change(now, time_period);
 
     let image = get_image(now, &sun, time_period, &wallpaper);
 
@@ -223,12 +213,6 @@ impl Sun {
             .and_hms(12, 0, 0)
             .with_timezone(&Utc);
 
-        info!("now:               {}", now.with_timezone(&Local));
-        debug!("noon today in UTC: {}", noon_today);
-
-        debug_assert!(Local::today().pred() <= now.with_timezone(&Local).date());
-        debug_assert!(Local::today().succ() >= now.with_timezone(&Local).date());
-
         let last_sunset = match spa::calc_sunrise_and_set(noon_today - Duration::days(1), lat, lon)?
         {
             SunriseAndSet::Daylight(_, sunset) => sunset,
@@ -246,60 +230,12 @@ impl Sun {
                 _ => unimplemented!(),
             };
 
-        debug_assert!(
-            last_sunset < sunrise,
-            "last_sunset < sunrise failed: {} < {}",
-            last_sunset,
-            sunrise
-        );
-        debug_assert!(
-            sunrise < sunset,
-            "sunrise < sunset failed: {} < {}",
-            sunrise,
-            sunset
-        );
-        debug_assert!(
-            sunset < next_sunrise,
-            "sunset < next_sunrise failed: {} < {}",
-            sunset,
-            next_sunrise
-        );
-
-        debug_assert!(last_sunset.with_nanosecond(0).unwrap() <= now.with_nanosecond(0).unwrap());
-        debug_assert!(now.with_nanosecond(0).unwrap() <= next_sunrise.with_nanosecond(0).unwrap());
-
         Ok(Self {
             last_sunset,
             sunrise,
             sunset,
             next_sunrise,
         })
-    }
-
-    fn time_since_last_and_next_change(&self, now: DateTime<Utc>, time_period: TimePeriod) {
-        use chrono_humanize::{Accuracy, HumanTime, Tense};
-
-        let (start, end) = self.start_end(time_period);
-        let (time_since, time_until): (HumanTime, HumanTime) =
-            ((now - start).into(), (end - now).into());
-
-        // complete the sentence: "Time since {}, time until {}".
-        let (since_when, until_when) = match time_period {
-            TimePeriod::BeforeSunrise => ("Yesterday's sunset", "Today's sunrise"),
-            TimePeriod::DayTime => ("Today's sunrise", "Sunset"),
-            TimePeriod::AfterSunset => ("Today's sunset", "Tomorrow's sunrise"),
-        };
-
-        info!(
-            "{} was {} ago.",
-            since_when,
-            time_since.to_text_en(Accuracy::Precise, Tense::Present)
-        );
-        info!(
-            "{} is {} from now.",
-            until_when,
-            time_until.to_text_en(Accuracy::Precise, Tense::Present)
-        );
     }
 
     /// Get the sunrise/sunset pairs depending on the time period.
@@ -309,24 +245,6 @@ impl Sun {
             TimePeriod::DayTime => (self.sunrise, self.sunset),
             TimePeriod::AfterSunset => (self.sunset, self.next_sunrise),
         }
-    }
-}
-
-impl fmt::Display for Sun {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "Sun:\n{}\n{:<13} {}\n{:<13} {}\n{:<13} {}\n{:<13} {}",
-            "-".repeat(50),
-            "last sunset:",
-            self.last_sunset.with_timezone(&Local),
-            "sunrise:",
-            self.sunrise.with_timezone(&Local),
-            "sunset:",
-            self.sunset.with_timezone(&Local),
-            "next sunrise:",
-            self.next_sunrise.with_timezone(&Local)
-        )
     }
 }
 
@@ -359,16 +277,6 @@ impl TimePeriod {
             Self::DayTime
         } else {
             Self::BeforeSunrise
-        }
-    }
-}
-
-impl fmt::Display for TimePeriod {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
-            Self::AfterSunset => write!(f, "\u{1f306} After Sunset"),
-            Self::BeforeSunrise => write!(f, "\u{1f305} Before Sunrise"),
-            Self::DayTime => write!(f, "\u{1f3d9} Daytime"),
         }
     }
 }
