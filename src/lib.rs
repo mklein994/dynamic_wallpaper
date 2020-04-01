@@ -312,34 +312,34 @@ mod tests {
         #[test]
         fn sunrise() {
             let image = get_image(SUN.sunrise, &SUN, &WALLPAPER);
-            assert_eq!(2, image);
+            assert_eq!(1, image);
         }
 
         #[test]
         fn sunset() {
             let image = get_image(SUN.sunset, &SUN, &WALLPAPER);
-            assert_eq!(13, image);
+            assert_eq!(14, image);
         }
 
         #[test]
         fn after_sunrise() {
             let now = SUN.sunrise + Duration::hours(1);
             let image = get_image(now, &SUN, &WALLPAPER);
-            assert_eq!(2, image);
+            assert_eq!(1, image);
         }
 
         #[test]
         fn just_past_sunrise() {
             let now = SUN.sunrise + Duration::nanoseconds(1);
             let image = get_image(now, &SUN, &WALLPAPER);
-            assert_eq!(2, image);
+            assert_eq!(1, image);
         }
 
         #[test]
         fn before_sunrise() {
             let now = SUN.sunrise - Duration::hours(1);
             let image = get_image(now, &SUN, &WALLPAPER);
-            assert_eq!(1, image);
+            assert_eq!(16, image);
         }
 
         #[test]
@@ -347,14 +347,14 @@ mod tests {
             let now = SUN.sunrise - Duration::nanoseconds(1);
             debug_assert!(now < SUN.sunrise);
             let image = get_image(now, &SUN, &WALLPAPER);
-            assert_eq!(1, image);
+            assert_eq!(16, image);
         }
 
         #[test]
         fn before_sunset() {
             let now = SUN.sunset - Duration::hours(1);
             let image = get_image(now, &SUN, &WALLPAPER);
-            assert_eq!(12, image);
+            assert_eq!(13, image);
         }
 
         #[test]
@@ -362,21 +362,21 @@ mod tests {
             let now = SUN.sunset - Duration::nanoseconds(1);
             debug_assert!(now < SUN.sunset);
             let image = get_image(now, &SUN, &WALLPAPER);
-            assert_eq!(12, image);
+            assert_eq!(13, image);
         }
 
         #[test]
         fn past_sunset() {
             let now = SUN.sunset + Duration::hours(1);
             let image = get_image(now, &SUN, &WALLPAPER);
-            assert_eq!(13, image);
+            assert_eq!(14, image);
         }
 
         #[test]
         fn just_past_sunset() {
             let now = SUN.sunset + Duration::nanoseconds(1);
             let image = get_image(now, &SUN, &WALLPAPER);
-            assert_eq!(13, image);
+            assert_eq!(14, image);
         }
     }
 
