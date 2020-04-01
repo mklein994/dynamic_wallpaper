@@ -380,9 +380,6 @@ mod tests {
         }
     }
 
-    // FIXME
-    // These tests fail because the logic in get_image() calls 4.01 % 4.0 which rounds to 0, but it
-    // should return 1.0.
     mod firewatch_tests {
         use super::*;
 
@@ -391,7 +388,6 @@ mod tests {
             night_images: 1,
         };
 
-        #[ignore]
         #[test]
         fn before_sunrise() {
             let now = SUN.sunrise - Duration::hours(1);
@@ -400,7 +396,6 @@ mod tests {
             assert_eq!(4, image);
         }
 
-        #[ignore]
         #[test]
         fn sunrise() {
             let now = SUN.sunrise;
@@ -409,7 +404,6 @@ mod tests {
             assert_eq!(1, image);
         }
 
-        #[ignore]
         #[test]
         fn after_sunrise() {
             let now = SUN.sunrise + Duration::hours(1);
@@ -418,7 +412,6 @@ mod tests {
             assert_eq!(1, image);
         }
 
-        #[ignore]
         #[test]
         fn solar_noon() {
             let now = SUN.sunrise
@@ -427,7 +420,6 @@ mod tests {
             assert_eq!(2, image);
         }
 
-        #[ignore]
         #[test]
         fn before_sunset() {
             let now = SUN.sunset - Duration::hours(1);
@@ -436,7 +428,6 @@ mod tests {
             assert_eq!(3, image);
         }
 
-        #[ignore]
         #[test]
         fn sunset() {
             let now = SUN.sunset;
@@ -445,7 +436,6 @@ mod tests {
             assert_eq!(4, image);
         }
 
-        #[ignore]
         #[test]
         fn after_sunset() {
             let now = SUN.sunset + Duration::hours(1);
