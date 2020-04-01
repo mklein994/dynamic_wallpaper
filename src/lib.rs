@@ -43,7 +43,12 @@ pub fn run() -> Result<()> {
 
 /// Get the image index for the current time, within the time period, from the `image_count` number
 /// of images.
-fn get_image(now: DateTime<Utc>, sun: &Sun, time_period: TimePeriod, wallpaper: &Wallpaper) -> i64 {
+fn get_image(
+    now: DateTime<Local>,
+    sun: &Sun,
+    time_period: TimePeriod,
+    wallpaper: &Wallpaper,
+) -> i64 {
     let offset = wallpaper.offset(time_period);
 
     let image_count = wallpaper.image_count(time_period);
@@ -83,7 +88,7 @@ pub struct Config {
     /// Needs to be in rfc3339 format, e.g. `2018-08-31T13:45:00-05:00`. See
     /// [here](chrono::DateTime::parse_from_rfc3339) for details.
     #[serde(default = "default_time")]
-    pub now: DateTime<Utc>,
+    pub now: DateTime<Local>,
 
     /// latitude
     pub lat: f64,
@@ -99,8 +104,8 @@ pub struct Config {
 }
 
 /// Get the current time in UTC.
-fn default_time() -> DateTime<Utc> {
-    Utc::now()
+fn default_time() -> DateTime<Local> {
+    Local::now()
 }
 
 impl Config {
@@ -184,21 +189,21 @@ impl Default for Wallpaper {
 #[derive(Debug)]
 struct Sun {
     /// Yesterday's sunset.
-    last_sunset: DateTime<Utc>,
+    last_sunset: DateTime<Local>,
 
     /// Today's sunrise.
-    sunrise: DateTime<Utc>,
+    sunrise: DateTime<Local>,
 
     /// Today's sunset.
-    sunset: DateTime<Utc>,
+    sunset: DateTime<Local>,
 
     /// Tomorrow's sunrise.
-    next_sunrise: DateTime<Utc>,
+    next_sunrise: DateTime<Local>,
 }
 
 impl Sun {
     /// Get the sunrise and sunset times depending on the current time and location.
-    fn new(now: DateTime<Utc>, lat: f64, lon: f64) -> Result<Self> {
+    fn new(now: DateTime<Local>, lat: f64, lon: f64) -> Result<Self> {
         use spa::SunriseAndSet;
 
         // Ensure that the time we use to calculate yesterday's sunset and tomorrow's sunrise is at
@@ -207,11 +212,7 @@ impl Sun {
         //
         // If we didn't do this, converting to UTC might change the date and get the wrong sunrise
         // and sunset times.
-        let noon_today = now
-            .with_timezone(&Local)
-            .date()
-            .and_hms(12, 0, 0)
-            .with_timezone(&Utc);
+        let noon_today = now.date().and_hms(12, 0, 0).with_timezone(&Utc);
 
         let last_sunset = match spa::calc_sunrise_and_set(noon_today - Duration::days(1), lat, lon)?
         {
@@ -231,15 +232,15 @@ impl Sun {
             };
 
         Ok(Self {
-            last_sunset,
-            sunrise,
-            sunset,
-            next_sunrise,
+            last_sunset: last_sunset.with_timezone(&Local),
+            sunrise: sunrise.with_timezone(&Local),
+            sunset: sunset.with_timezone(&Local),
+            next_sunrise: next_sunrise.with_timezone(&Local),
         })
     }
 
     /// Get the sunrise/sunset pairs depending on the time period.
-    fn start_end(&self, time_period: TimePeriod) -> (DateTime<Utc>, DateTime<Utc>) {
+    fn start_end(&self, time_period: TimePeriod) -> (DateTime<Local>, DateTime<Local>) {
         match time_period {
             TimePeriod::BeforeSunrise => (self.last_sunset, self.sunrise),
             TimePeriod::DayTime => (self.sunrise, self.sunset),
@@ -270,7 +271,7 @@ enum TimePeriod {
 impl TimePeriod {
     /// Determine the time period depending on the given time and the times for
     /// sunrise and sunset.
-    fn new(now: &DateTime<Utc>, sunrise: &DateTime<Utc>, sunset: &DateTime<Utc>) -> Self {
+    fn new(now: &DateTime<Local>, sunrise: &DateTime<Local>, sunset: &DateTime<Local>) -> Self {
         if *now > *sunset {
             Self::AfterSunset
         } else if *now >= *sunrise {
@@ -288,10 +289,10 @@ mod tests {
 
     lazy_static! {
         static ref SUN: Sun = Sun {
-            last_sunset: Local.ymd(2018, 8, 5).and_hms(21, 3, 24).with_timezone(&Utc),
-            sunrise: Local.ymd(2018, 8, 6).and_hms(6, 4, 25).with_timezone(&Utc),
-            sunset: Local.ymd(2018, 8, 6).and_hms(21, 1, 44).with_timezone(&Utc),
-            next_sunrise: Local.ymd(2018, 8, 6).and_hms(6, 5, 52).with_timezone(&Utc),
+            last_sunset: Local.ymd(2018, 8, 5).and_hms(21, 3, 24),
+            sunrise: Local.ymd(2018, 8, 6).and_hms(6, 4, 25),
+            sunset: Local.ymd(2018, 8, 6).and_hms(21, 1, 44),
+            next_sunrise: Local.ymd(2018, 8, 6).and_hms(6, 5, 52),
         };
     }
 
@@ -362,7 +363,7 @@ mod tests {
         #[test]
         fn noon() {
             let time_period = TimePeriod::new(
-                &Local.ymd(2018, 8, 6).and_hms(12, 0, 0).with_timezone(&Utc),
+                &Local.ymd(2018, 8, 6).and_hms(12, 0, 0),
                 &SUN.sunrise,
                 &SUN.sunset,
             );
@@ -372,7 +373,7 @@ mod tests {
         #[test]
         fn last_midnight() {
             let time_period = TimePeriod::new(
-                &Local.ymd(2018, 8, 6).and_hms(0, 0, 0).with_timezone(&Utc),
+                &Local.ymd(2018, 8, 6).and_hms(0, 0, 0),
                 &SUN.sunrise,
                 &SUN.sunset,
             );
@@ -382,7 +383,7 @@ mod tests {
         #[test]
         fn next_midnight() {
             let time_period = TimePeriod::new(
-                &Local.ymd(2018, 8, 7).and_hms(0, 0, 0).with_timezone(&Utc),
+                &Local.ymd(2018, 8, 7).and_hms(0, 0, 0),
                 &SUN.sunrise,
                 &SUN.sunset,
             );
