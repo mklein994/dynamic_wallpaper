@@ -451,4 +451,38 @@ mod tests {
             assert_eq!(4, image);
         }
     }
+
+    mod config_tests {
+        use super::*;
+
+        #[test]
+        #[should_panic]
+        fn day_images_zero() {
+            let config = Config {
+                now: Local::now(),
+                lat: 12.34,
+                lon: 56.78,
+                wallpaper: Wallpaper {
+                    day_images: 0,
+                    night_images: 1,
+                },
+            };
+            config.validate().expect("day_images check failed");
+        }
+
+        #[test]
+        #[should_panic]
+        fn night_images_zero() {
+            let config = Config {
+                now: Local::now(),
+                lat: 12.34,
+                lon: 56.78,
+                wallpaper: Wallpaper {
+                    day_images: 1,
+                    night_images: 0,
+                },
+            };
+            config.validate().expect("night_images check failed")
+        }
+    }
 }
