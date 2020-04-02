@@ -20,10 +20,15 @@ type Result<T> = std::result::Result<T, Error>;
 
 /// Main entry point.
 pub fn run() -> Result<i64> {
-    let filename = dirs::config_dir()
-        .expect("Couldn't find $XDG_CONFIG_DIR (~/.config/)")
-        .join("dynamic_wallpaper")
-        .join("config.toml");
+    let filename = std::env::var("DYNAMIC_WALLPAPER_CONFIG").map_or_else(
+        |_| {
+            dirs::config_dir()
+                .expect("Couldn't find $XDG_CONFIG_DIR (~/.config/)")
+                .join("dynamic_wallpaper")
+                .join("config.toml")
+        },
+        PathBuf::from,
+    );
 
     let config = Config::try_from(filename)?;
     let now = config.now;
