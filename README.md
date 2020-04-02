@@ -29,12 +29,10 @@ lon = -65.4321
 
 # these are the defaults
 [wallpaper]
-# The total number of images
-count = 16
-# The image to use just as the sun appears
-daybreak = 2
-# The image to use just as the moon shows up
-nightfall = 13
+# Number of images to use during the day time.
+day_images = 13
+# Number of images to use at night. These follow the day time images.
+night_images = 3
 ```
 
 Here's my setup for how I use this. It uses `feh(1)` and a systemd timer.
