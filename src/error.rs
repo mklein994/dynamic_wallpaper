@@ -1,10 +1,15 @@
 use std::fmt;
 
+/// Error type for this crate.
 #[derive(Debug)]
 pub enum Error {
+    /// Logical errors in the configuration file.
     Config(&'static str),
+    /// Error reading file from disk.
     Io(std::io::Error),
+    /// Error getting the sunrise/sunset times.
     Spa(spa::SpaError),
+    /// Syntactic error parsing the configuration file.
     Toml(toml::de::Error),
 }
 

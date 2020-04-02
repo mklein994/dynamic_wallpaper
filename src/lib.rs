@@ -8,9 +8,9 @@ mod error;
 #[cfg(test)]
 use lazy_static::lazy_static;
 
-use self::error::Error;
+pub use self::error::Error;
 
-use chrono::{DateTime, Duration, Local, Utc};
+use chrono::{Date, DateTime, Duration, Local, Utc};
 use serde::Deserialize;
 use std::convert::TryFrom;
 use std::path::PathBuf;
@@ -34,7 +34,7 @@ pub fn run() -> Result<i64> {
     let now = config.now;
     let wallpaper = config.wallpaper;
 
-    let sun = Sun::new(now, config.lat, config.lon)?;
+    let sun = Sun::new(now.date(), config.lat, config.lon)?;
 
     let image = get_image(now, &sun, &wallpaper);
 
@@ -137,6 +137,7 @@ impl TryFrom<PathBuf> for Config {
 
 /// Wallpaper configuration settings.
 #[derive(Debug, Deserialize)]
+#[doc(inline)]
 pub struct Wallpaper {
     /// Number of images to use during the day.
     pub day_images: u32,
@@ -166,7 +167,7 @@ impl Default for Wallpaper {
     }
 }
 
-/// Sunrise and sunset times for yesterday, today and tomorrow.
+/// Sunrise and sunset times.
 #[derive(Debug)]
 struct Sun {
     /// Today's sunrise.
@@ -177,8 +178,8 @@ struct Sun {
 }
 
 impl Sun {
-    /// Get the sunrise and sunset times depending on the current time and location.
-    fn new(now: DateTime<Local>, lat: f64, lon: f64) -> Result<Self> {
+    /// Get the time of sunrise and sunset depending on the date and location.
+    fn new(date: Date<Local>, lat: f64, lon: f64) -> Result<Self> {
         use spa::SunriseAndSet;
 
         // Ensure that the time we use to calculate yesterday's sunset and tomorrow's sunrise is at
@@ -187,9 +188,9 @@ impl Sun {
         //
         // If we didn't do this, converting to UTC might change the date and get the wrong sunrise
         // and sunset times.
-        let noon_today = now.date().and_hms(12, 0, 0).with_timezone(&Utc);
+        let noon = date.and_hms(12, 0, 0).with_timezone(&Utc);
 
-        let (sunrise, sunset) = match spa::calc_sunrise_and_set(noon_today, lat, lon)? {
+        let (sunrise, sunset) = match spa::calc_sunrise_and_set(noon, lat, lon)? {
             SunriseAndSet::Daylight(sunrise, sunset) => {
                 (sunrise.with_timezone(&Local), sunset.with_timezone(&Local))
             }
@@ -203,20 +204,24 @@ impl Sun {
 /// Time of day according to the sun.
 #[derive(Debug, PartialEq, Copy, Clone)]
 enum TimePeriod {
-    /// After the sun has set, including sunset itself.
-    ///
-    /// Marks time starting at sunset until but not including midnight.
-    AfterSunset,
-
     /// Before the sun has risen.
     ///
-    /// Marks time starting at midnight until but not including sunrise.
+    /// Marks time starting at midnight up to but not including sunrise.
+    ///
+    /// interval: `[midnight, sunrise)`
     BeforeSunrise,
 
-    /// Between sunrise and sunset.
+    /// Time from sunrise to sunset, inclusive.
     ///
-    /// Marks time starting at sunrise until but not including sunset.
+    /// interval: `[sunrise, sunset]`
     DayTime,
+
+    /// After the sun has set.
+    ///
+    /// Marks time starting just after sunset up to but not including midnight.
+    ///
+    /// interval: `(sunset, midnight)`
+    AfterSunset,
 }
 
 impl TimePeriod {
