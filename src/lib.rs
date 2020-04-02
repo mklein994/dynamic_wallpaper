@@ -3,8 +3,6 @@
 //! Print the index of the image to use depending on the time of day and
 //! location. These are set in `~/.config/dynamic_wallpaper/config.toml`.
 
-use serde::Deserialize;
-
 mod error;
 
 #[cfg(test)]
@@ -13,6 +11,7 @@ use lazy_static::lazy_static;
 use self::error::Error;
 
 use chrono::{DateTime, Duration, Local, Utc};
+use serde::Deserialize;
 use std::convert::TryFrom;
 use std::path::PathBuf;
 
