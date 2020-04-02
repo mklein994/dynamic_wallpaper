@@ -19,7 +19,7 @@ use std::path::PathBuf;
 type Result<T> = std::result::Result<T, Error>;
 
 /// Main entry point.
-pub fn run() -> Result<()> {
+pub fn run() -> Result<i64> {
     let filename = dirs::config_dir()
         .expect("Couldn't find $XDG_CONFIG_DIR (~/.config/)")
         .join("dynamic_wallpaper")
@@ -33,9 +33,7 @@ pub fn run() -> Result<()> {
 
     let image = get_image(now, &sun, &wallpaper);
 
-    println!("{}", image);
-
-    Ok(())
+    Ok(image)
 }
 
 fn get_image(now: DateTime<Local>, sun: &Sun, wallpaper: &Wallpaper) -> i64 {
