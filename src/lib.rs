@@ -10,7 +10,7 @@ use lazy_static::lazy_static;
 
 pub use self::error::Error;
 
-use chrono::{Date, DateTime, Duration, Local, Utc};
+use chrono::{Date, DateTime, Datelike, Duration, Local, TimeZone};
 use serde::Deserialize;
 use std::convert::TryFrom;
 use std::path::PathBuf;
@@ -180,21 +180,18 @@ struct Sun {
 impl Sun {
     /// Get the time of sunrise and sunset depending on the date and location.
     fn new(date: Date<Local>, lat: f64, lon: f64) -> Result<Self> {
-        use spa::SunriseAndSet;
-
         // Ensure that the time we use to calculate yesterday's sunset and tomorrow's sunrise is at
         // noon today before converting to UTC. The goal is to use a time in `TimePeriod::DayTime`
         // to calculate with.
         //
         // If we didn't do this, converting to UTC might change the date and get the wrong sunrise
         // and sunset times.
-        let noon = date.and_hms(12, 0, 0).with_timezone(&Utc);
+        // let noon = date.and_hms(12, 0, 0).with_timezone(&Utc);
 
-        let (sunrise, sunset) = match spa::calc_sunrise_and_set(noon, lat, lon)? {
-            SunriseAndSet::Daylight(sunrise, sunset) => {
-                (sunrise.with_timezone(&Local), sunset.with_timezone(&Local))
-            }
-            _ => unimplemented!(),
+        let (sunrise, sunset) = {
+            let (sunrise, sunset) =
+                sunrise::sunrise_sunset(lat, lon, date.year(), date.month(), date.day());
+            (Local.timestamp(sunrise, 0), Local.timestamp(sunset, 0))
         };
 
         Ok(Self { sunrise, sunset })

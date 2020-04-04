@@ -12,7 +12,7 @@ maintenance = { status = "experimental" }
 chrono = { version = "0.4.6", features = ["serde"] }
 dirs = "2.0.1"
 serde = { version = "1.0.105", features = ["derive"] }
-spa = "0.2.0"
+sunrise = { git = "https://github.com/mklein994/rust-sunrise" }
 toml = "0.5.1"
 
 [dev-dependencies]

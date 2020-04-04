@@ -100,7 +100,7 @@ dependencies = [
  "dirs",
  "lazy_static",
  "serde",
- "spa",
+ "sunrise",
  "toml",
 ]
 
@@ -214,10 +214,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "spa"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2cb0b73b1ea9c2b5bbb17576ff522c9a956b414e820e91e04fd86b32769e68a"
+name = "sunrise"
+version = "1.0.0"
+source = "git+https://github.com/mklein994/rust-sunrise#5c15da30b20e8c8e78da67bbaf2c970110878453"
 dependencies = [
  "chrono",
 ]
