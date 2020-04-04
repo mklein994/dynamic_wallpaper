@@ -8,15 +8,15 @@ tasks:
       curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
         sh -s -- -y --profile minimal --component rustfmt
       cat ~/.cargo/env >> ~/.buildenv
-  - setup_check: |
-      rustc --version
-      cargo --version
-  - fmt_check: |
+  - stable: |
       cd $PROJECT_PATH
       cargo fmt -- --check
-  - build: |
-      cd $PROJECT_PATH
       cargo build --verbose
-  - test: |
-      cd $PROJECT_PATH
       cargo test --verbose
+      cargo doc --no-deps --verbose
+  - nightly: |
+      cd $PROJECT_PATH
+      rustup toolchain install nightly
+      cargo +nightly build --verbose ||:
+      cargo +nightly test --verbose ||:
+      cargo +nightly doc --no-deps --verbose ||:
