@@ -216,7 +216,7 @@ dependencies = [
 [[package]]
 name = "sunrise"
 version = "1.0.0"
-source = "git+https://github.com/mklein994/rust-sunrise#5c15da30b20e8c8e78da67bbaf2c970110878453"
+source = "git+https://github.com/mklein994/rust-sunrise#954cfa5fa4475614ed34b5fb24f0b59abc52f2b0"
 dependencies = [
  "chrono",
 ]
