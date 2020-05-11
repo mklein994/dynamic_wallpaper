@@ -180,14 +180,6 @@ struct Sun {
 impl Sun {
     /// Get the time of sunrise and sunset depending on the date and location.
     fn new(date: Date<Local>, lat: f64, lon: f64) -> Result<Self> {
-        // Ensure that the time we use to calculate yesterday's sunset and tomorrow's sunrise is at
-        // noon today before converting to UTC. The goal is to use a time in `TimePeriod::DayTime`
-        // to calculate with.
-        //
-        // If we didn't do this, converting to UTC might change the date and get the wrong sunrise
-        // and sunset times.
-        // let noon = date.and_hms(12, 0, 0).with_timezone(&Utc);
-
         let (sunrise, sunset) = {
             let (sunrise, sunset) =
                 sunrise::sunrise_sunset(lat, lon, date.year(), date.month(), date.day());
