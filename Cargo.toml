@@ -16,4 +16,4 @@ sunrise = { git = "https://github.com/mklein994/rust-sunrise" }
 toml = "0.5.1"
 
 [dev-dependencies]
-lazy_static = "1.2.0"
+lazy_static = "1.4.0"
