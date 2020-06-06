@@ -6,5 +6,5 @@ fn run_smoke_test() {
     );
     let index = dynamic_wallpaper::run().unwrap();
 
-    assert_eq!(5, index);
+    assert_eq!(3, index);
 }

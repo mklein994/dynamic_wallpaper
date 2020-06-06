@@ -3,6 +3,6 @@ now = "2020-04-01T12:00:00-05:00"
 lat = 49.8951
 lon = -97.1384
 
-[weather]
+[wallpaper]
 day_images = 7
 night_images = 1
