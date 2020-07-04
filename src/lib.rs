@@ -141,7 +141,7 @@ mod tests {
         };
     }
 
-    mod time_period_tests {
+    mod time_period {
         use super::*;
 
         #[test]
@@ -199,7 +199,7 @@ mod tests {
         }
     }
 
-    mod get_image_tests {
+    mod get_image {
         use super::*;
 
         const WALLPAPER: Wallpaper = Wallpaper {
@@ -278,7 +278,7 @@ mod tests {
         }
     }
 
-    mod firewatch_tests {
+    mod firewatch {
         use super::*;
 
         const WALLPAPER: Wallpaper = Wallpaper {
