@@ -44,8 +44,8 @@ fn get_image(now: DateTime<Local>, sun: &Sun, wallpaper: &Wallpaper) -> i64 {
     let day_duration = sunset - sunrise;
     let night_duration = Duration::days(1) - day_duration;
 
-    let day_size = f64::from(wallpaper.day_images);
-    let night_size = f64::from(wallpaper.night_images);
+    let day_size = f64::from(wallpaper.day_images.get());
+    let night_size = f64::from(wallpaper.night_images.get());
 
     let time_period = TimePeriod::new(&now, &sun);
 
@@ -133,6 +133,7 @@ mod tests {
     use super::*;
     use chrono::TimeZone;
     use lazy_static::lazy_static;
+    use std::num::NonZeroU32;
 
     lazy_static! {
         static ref SUN: Sun = Sun {
@@ -202,10 +203,12 @@ mod tests {
     mod get_image {
         use super::*;
 
-        const WALLPAPER: Wallpaper = Wallpaper {
-            day_images: 13,
-            night_images: 3,
-        };
+        lazy_static! {
+            static ref WALLPAPER: Wallpaper = Wallpaper {
+                day_images: NonZeroU32::new(13).unwrap(),
+                night_images: NonZeroU32::new(3).unwrap(),
+            };
+        }
 
         #[test]
         fn sunrise() {
@@ -281,10 +284,12 @@ mod tests {
     mod firewatch {
         use super::*;
 
-        const WALLPAPER: Wallpaper = Wallpaper {
-            day_images: 3,
-            night_images: 1,
-        };
+        lazy_static! {
+            static ref WALLPAPER: Wallpaper = Wallpaper {
+                day_images: NonZeroU32::new(3).unwrap(),
+                night_images: NonZeroU32::new(1).unwrap(),
+            };
+        }
 
         #[test]
         fn before_sunrise() {
