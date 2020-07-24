@@ -18,7 +18,11 @@ stages:
 .job_template: &test_definition
   stage: test
   script:
-    - cargo test --verbose
+    - cargo install cargo2junit
+    - cargo test -- -Z unstable-options --format json | cargo2junit > results.xml
+  artifacts:
+    reports:
+      junit: results.xml
 
 rust-latest:fmt_check:
   <<: *fmt_check_definition
