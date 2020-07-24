@@ -1,6 +1,7 @@
 stages:
   - fmt_check
   - build
+  - test
 
 .fmt_check_template: &fmt_check_definition
   stage: fmt_check
@@ -13,6 +14,10 @@ stages:
   script:
     - rustc --version && cargo --version
     - cargo build --verbose
+
+.job_template: &test_definition
+  stage: test
+  script:
     - cargo test --verbose
 
 rust-latest:fmt_check:
@@ -23,6 +28,10 @@ rust-latest:build:
   <<: *build_definition
   image: rust:latest
 
+rust-latest:test:
+  <<: *test_definition
+  image: rust:latest
+
 rust-nightly:fmt_check:
   <<: *fmt_check_definition
   image: rustlang/rust:nightly
@@ -30,5 +39,10 @@ rust-nightly:fmt_check:
 
 rust-nightly:build:
   <<: *build_definition
+  image: rustlang/rust:nightly
+  allow_failure: true
+
+rust-nightly:test:
+  <<: *test_definition
   image: rustlang/rust:nightly
   allow_failure: true
