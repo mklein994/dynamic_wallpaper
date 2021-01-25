@@ -47,11 +47,9 @@ impl TryFrom<PathBuf> for Config {
     type Error = Error;
 
     fn try_from(filename: PathBuf) -> Result<Self> {
-        let contents = std::fs::read_to_string(filename)?;
-
-        let config: Self = contents.parse()?;
-
-        Ok(config)
+        std::fs::read_to_string(filename)?
+            .parse()
+            .map_err(Error::from)
     }
 }
 
