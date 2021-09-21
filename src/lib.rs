@@ -32,7 +32,7 @@ pub fn run() -> Result<i64> {
     let now = config.now;
     let wallpaper = config.wallpaper;
 
-    let sun = Sun::new(now.date(), config.lat, config.lon)?;
+    let sun = Sun::new(now.date(), config.lat, config.lon);
 
     let image = get_image(now, &sun, &wallpaper);
 
@@ -80,14 +80,14 @@ struct Sun {
 
 impl Sun {
     /// Get the time of sunrise and sunset depending on the date and location.
-    fn new(date: Date<Local>, lat: f64, lon: f64) -> Result<Self> {
+    fn new(date: Date<Local>, lat: f64, lon: f64) -> Self {
         let (sunrise, sunset) = {
             let (sunrise, sunset) =
                 sunrise::sunrise_sunset(lat, lon, date.year(), date.month(), date.day());
             (Local.timestamp(sunrise, 0), Local.timestamp(sunset, 0))
         };
 
-        Ok(Self { sunrise, sunset })
+        Self { sunrise, sunset }
     }
 }
 
