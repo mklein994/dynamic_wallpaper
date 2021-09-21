@@ -65,7 +65,6 @@ impl FromStr for Config {
 
 /// Wallpaper configuration settings.
 #[derive(Debug, Deserialize)]
-#[doc(inline)]
 pub struct Wallpaper {
     /// Number of images to use during the day.
     pub day_images: NonZeroU32,
