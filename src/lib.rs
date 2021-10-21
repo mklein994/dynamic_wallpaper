@@ -47,7 +47,7 @@ fn get_image(now: DateTime<Local>, sun: &Sun, wallpaper: &Wallpaper) -> i64 {
     let day_size = f64::from(wallpaper.day_images.get());
     let night_size = f64::from(wallpaper.night_images.get());
 
-    let time_period = TimePeriod::new(&now, &sun);
+    let time_period = TimePeriod::new(&now, sun);
 
     let index = match time_period {
         TimePeriod::BeforeSunrise => {
