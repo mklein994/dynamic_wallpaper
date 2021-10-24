@@ -10,7 +10,6 @@ pub use self::config::{Config, Wallpaper};
 pub use self::error::Error;
 
 use chrono::{Date, DateTime, Datelike, Duration, Local, TimeZone};
-use std::convert::TryFrom;
 use std::path::PathBuf;
 
 /// Result type alias to handle errors.
