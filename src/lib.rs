@@ -21,7 +21,7 @@ pub fn run() -> Result<i64> {
         |_| {
             dirs::config_dir()
                 .expect("Couldn't find $XDG_CONFIG_DIR (~/.config/)")
-                .join("dynamic_wallpaper")
+                .join(env!("CARGO_PKG_NAME"))
                 .join("config.toml")
         },
         PathBuf::from,
