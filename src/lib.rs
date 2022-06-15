@@ -92,7 +92,7 @@ impl Sun {
 }
 
 /// Time of day according to the sun.
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 enum TimePeriod {
     /// Before the sun has risen.
     ///
