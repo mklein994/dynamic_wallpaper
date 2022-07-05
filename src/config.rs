@@ -86,8 +86,9 @@ mod tests {
             night_images = 12
         "#;
 
-        let _ = config
-            .parse::<Config>()
-            .expect_err("Should be a FromStr error");
+        assert!(matches!(
+            config.parse::<Config>().unwrap_err(),
+            toml::de::Error { .. }
+        ));
     }
 }
