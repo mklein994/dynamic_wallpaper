@@ -37,6 +37,16 @@ pub struct Config {
     pub wallpaper: Wallpaper,
 }
 
+impl Config {
+    /// Get the default path to the config file.
+    pub fn default_path() -> PathBuf {
+        dirs::config_dir()
+            .unwrap()
+            .join(env!("CARGO_PKG_NAME"))
+            .join("config.toml")
+    }
+}
+
 /// Get the current time.
 fn default_time() -> DateTime<Local> {
     Local::now()

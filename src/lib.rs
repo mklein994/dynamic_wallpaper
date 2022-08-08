@@ -17,6 +17,18 @@ type Result<T> = std::result::Result<T, Error>;
 
 /// Main entry point.
 pub fn run() -> Result<i64> {
+    let config = get_config()?;
+    let now = config.now;
+    let wallpaper = config.wallpaper;
+
+    let sun = Sun::new(now.date(), config.lat, config.lon);
+
+    let image = get_image(now, &sun, &wallpaper);
+
+    Ok(image)
+}
+
+fn get_config() -> Result<Config> {
     let filename = std::env::var("DYNAMIC_WALLPAPER_CONFIG").map_or_else(
         |_| {
             dirs::config_dir()
@@ -26,16 +38,8 @@ pub fn run() -> Result<i64> {
         },
         PathBuf::from,
     );
-
     let config = Config::try_from(filename)?;
-    let now = config.now;
-    let wallpaper = config.wallpaper;
-
-    let sun = Sun::new(now.date(), config.lat, config.lon);
-
-    let image = get_image(now, &sun, &wallpaper);
-
-    Ok(image)
+    Ok(config)
 }
 
 fn get_image(now: DateTime<Local>, sun: &Sun, wallpaper: &Wallpaper) -> i64 {
