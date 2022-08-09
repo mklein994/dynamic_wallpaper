@@ -3,10 +3,11 @@ name = "dynamic_wallpaper"
 version = "0.1.0"
 authors = ["Matthew Klein <mklein994@gmail.com>"]
 edition = "2021"
+repository = "https://github.com/mklein994/dynamic_wallpaper"
+categories = ["command-line-utilities"]
 
 [badges]
-travis-ci = { repository = "mklein994/dynamic_wallpaper" }
-maintenance = { status = "experimental" }
+maintenance = { status = "passively-maintained" }
 
 [dependencies]
 chrono = { version = "0.4.6", features = ["serde"] }
