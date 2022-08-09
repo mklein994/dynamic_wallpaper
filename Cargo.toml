@@ -5,6 +5,7 @@ authors = ["Matthew Klein <mklein994@gmail.com>"]
 edition = "2021"
 repository = "https://github.com/mklein994/dynamic_wallpaper"
 categories = ["command-line-utilities"]
+license = "MIT"
 
 [badges]
 maintenance = { status = "passively-maintained" }
