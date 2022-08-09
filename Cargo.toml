@@ -2,6 +2,7 @@
 name = "dynamic_wallpaper"
 version = "0.1.0"
 authors = ["Matthew Klein <mklein994@gmail.com>"]
+description = "Get the wallpaper image index to use based on the position of the sun"
 edition = "2021"
 repository = "https://github.com/mklein994/dynamic_wallpaper"
 categories = ["command-line-utilities"]
