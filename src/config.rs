@@ -74,9 +74,13 @@ impl FromStr for Config {
 #[derive(Debug, Deserialize)]
 pub struct Wallpaper {
     /// Number of images to use during the day.
+    ///
+    /// These should be numbered chronologically, starting from 1.
     pub day_images: NonZeroU32,
 
     /// Number of images to use at night.
+    ///
+    /// These should be numbered after the day images, in chronological order.
     pub night_images: NonZeroU32,
 }
 
