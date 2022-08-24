@@ -1,9 +1,9 @@
 on: push
 
-name: ci
+name: main
 
 jobs:
-  ci:
+  build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
