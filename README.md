@@ -1,6 +1,6 @@
 # Dynamic Wallpaper
 
-![ci](https://github.com/mklein994/dynamic_wallpaper/workflows/ci/badge.svg)
+![main](https://github.com/mklein994/dynamic_wallpaper/workflows/main/badge.svg)
 [![GitLab CI](https://gitlab.com/mklein994/dynamic_wallpaper/badges/master/pipeline.svg)](https://gitlab.com/mklein994/dynamic_wallpaper/commits/master)
 
 Change your wallpaper depending on the time of day and the position of the sun.
