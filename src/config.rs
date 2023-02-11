@@ -39,6 +39,7 @@ pub struct Config {
 
 impl Config {
     /// Get the default path to the config file.
+    #[must_use]
     pub fn default_path() -> PathBuf {
         dirs::config_dir()
             .unwrap()

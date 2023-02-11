@@ -9,7 +9,7 @@ mod error;
 pub use self::config::{Config, Wallpaper};
 pub use self::error::Error;
 
-use chrono::{Date, DateTime, Datelike, Duration, Local, TimeZone};
+use chrono::{DateTime, Datelike, Duration, Local, TimeZone};
 use std::path::PathBuf;
 
 /// Result type alias to handle errors.
@@ -21,7 +21,7 @@ pub fn run() -> Result<i64> {
     let now = config.now;
     let wallpaper = config.wallpaper;
 
-    let sun = Sun::new(now.date(), config.lat, config.lon);
+    let sun = Sun::new(now, config.lat, config.lon);
 
     let image = get_image(now, &sun, &wallpaper);
 
@@ -83,11 +83,14 @@ struct Sun {
 
 impl Sun {
     /// Get the time of sunrise and sunset depending on the date and location.
-    fn new(date: Date<Local>, lat: f64, lon: f64) -> Self {
+    fn new(date: DateTime<Local>, lat: f64, lon: f64) -> Self {
         let (sunrise, sunset) = {
             let (sunrise, sunset) =
                 sunrise::sunrise_sunset(lat, lon, date.year(), date.month(), date.day());
-            (Local.timestamp(sunrise, 0), Local.timestamp(sunset, 0))
+            (
+                Local.timestamp_opt(sunrise, 0).unwrap(),
+                Local.timestamp_opt(sunset, 0).unwrap(),
+            )
         };
 
         Self { sunrise, sunset }
@@ -140,8 +143,8 @@ mod tests {
 
     lazy_static! {
         static ref SUN: Sun = Sun {
-            sunrise: Local.ymd(2018, 8, 6).and_hms(6, 0, 0),
-            sunset: Local.ymd(2018, 8, 6).and_hms(20, 0, 0),
+            sunrise: Local.with_ymd_and_hms(2018, 8, 6, 6, 0, 0).unwrap(),
+            sunset: Local.with_ymd_and_hms(2018, 8, 6, 20, 0, 0).unwrap(),
         };
     }
 
@@ -150,19 +153,22 @@ mod tests {
 
         #[test]
         fn noon() {
-            let time_period = TimePeriod::new(&Local.ymd(2018, 8, 6).and_hms(12, 0, 0), &SUN);
+            let time_period =
+                TimePeriod::new(&Local.with_ymd_and_hms(2018, 8, 6, 12, 0, 0).unwrap(), &SUN);
             assert_eq!(TimePeriod::DayTime, time_period);
         }
 
         #[test]
         fn last_midnight() {
-            let time_period = TimePeriod::new(&Local.ymd(2018, 8, 6).and_hms(0, 0, 0), &SUN);
+            let time_period =
+                TimePeriod::new(&Local.with_ymd_and_hms(2018, 8, 6, 0, 0, 0).unwrap(), &SUN);
             assert_eq!(TimePeriod::BeforeSunrise, time_period);
         }
 
         #[test]
         fn next_midnight() {
-            let time_period = TimePeriod::new(&Local.ymd(2018, 8, 7).and_hms(0, 0, 0), &SUN);
+            let time_period =
+                TimePeriod::new(&Local.with_ymd_and_hms(2018, 8, 7, 0, 0, 0).unwrap(), &SUN);
             assert_eq!(TimePeriod::AfterSunset, time_period);
         }
 
