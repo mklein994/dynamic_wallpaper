@@ -91,14 +91,14 @@ mod tests {
 
     #[test]
     fn config_with_day_images_zero() {
-        let config = r#"
+        let config = r"
             lat = 12.34
             lon = -98.76
 
             [wallpaper]
             day_images = 0
             night_images = 12
-        "#;
+        ";
 
         assert!(matches!(
             config.parse::<Config>().unwrap_err(),
