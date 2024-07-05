@@ -1,6 +1,6 @@
 [package]
 name = "dynamic_wallpaper"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Matthew Klein <mklein994@gmail.com>"]
 description = "Get the wallpaper image index to use based on the position of the sun"
 edition = "2021"
