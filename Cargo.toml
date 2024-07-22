@@ -12,7 +12,7 @@ license = "MIT"
 maintenance = { status = "passively-maintained" }
 
 [dependencies]
-chrono = { version = "0.4.38", features = ["serde"] }
+jiff = { version = "0.1.0", features = ["serde"] }
 dirs = "5.0.1"
 serde = { version = "1.0.203", features = ["derive"] }
 sunrise = { git = "https://github.com/mklein994/rust-sunrise" }

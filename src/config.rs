@@ -1,5 +1,5 @@
 use super::{Error, Result};
-use chrono::{DateTime, Local};
+use jiff::Zoned;
 use serde::Deserialize;
 use std::num::NonZeroU32;
 use std::{path::PathBuf, str::FromStr};
@@ -20,12 +20,11 @@ use std::{path::PathBuf, str::FromStr};
 /// ```
 #[derive(Debug, Deserialize)]
 pub struct Config {
-    /// Current time. Defaults to now.
+    /// Current time. Defaults to the current system time.
     ///
-    /// Useful for debugging. Needs to be in [rfc3339
-    /// format][chrono::DateTime::parse_from_rfc3339], e.g. `2018-08-31T13:45:00-05:00`.
+    /// Useful for debugging. Needs to be in [Temporal ISO 8601 grammar](https://tc39.es/proposal-temporal/#sec-temporal-iso8601grammar), e.g. `2020-08-21T02:21:58-04[America/New_York]`.
     #[serde(default = "default_time")]
-    pub now: DateTime<Local>,
+    pub now: Zoned,
 
     /// latitude
     pub lat: f64,
@@ -49,8 +48,8 @@ impl Config {
 }
 
 /// Get the current time.
-fn default_time() -> DateTime<Local> {
-    Local::now()
+fn default_time() -> Zoned {
+    Zoned::try_from(std::time::SystemTime::now()).unwrap()
 }
 
 impl TryFrom<PathBuf> for Config {
