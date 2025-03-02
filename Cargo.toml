@@ -12,8 +12,8 @@ license = "MIT"
 maintenance = { status = "passively-maintained" }
 
 [dependencies]
-jiff = { version = "0.1.0", features = ["serde"] }
-dirs = "5.0.1"
+jiff = { version = "0.2.1", features = ["serde"] }
+dirs = "6.0.0"
 serde = { version = "1.0.203", features = ["derive"] }
 sunrise = { git = "https://github.com/mklein994/rust-sunrise" }
 toml = "0.8.14"
