@@ -45,7 +45,7 @@ fn get_config() -> Result<Config> {
 fn get_image(now: &Zoned, sun: &Sun, wallpaper: &Wallpaper) -> i64 {
     let (sunrise, sunset) = (&sun.sunrise, &sun.sunset);
     let day_duration = sunrise.until(sunset).unwrap();
-    let night_duration = 1.day().checked_sub(day_duration).unwrap();
+    let night_duration = 1.day().checked_sub((day_duration, sunrise)).unwrap();
 
     let day_size = f64::from(wallpaper.day_images.get());
     let night_size = f64::from(wallpaper.night_images.get());
