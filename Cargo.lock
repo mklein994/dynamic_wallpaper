@@ -41,7 +41,6 @@ version = "0.1.2"
 dependencies = [
  "dirs",
  "jiff 0.2.1",
- "lazy_static",
  "serde",
  "sunrise",
  "toml",
@@ -122,12 +121,6 @@ checksum = "a63c62e404e7b92979d2792352d885a7f8f83fd1d0d31eea582d77b2ceca697e"
 dependencies = [
  "jiff-tzdb",
 ]
-
-[[package]]
-name = "lazy_static"
-version = "1.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
 name = "libc"

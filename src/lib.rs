@@ -187,23 +187,20 @@ impl TimePeriod {
 mod tests {
     use super::*;
     use jiff::civil::DateTime;
-    use lazy_static::lazy_static;
-    use std::num::NonZeroU32;
+    use std::{num::NonZeroU32, sync::LazyLock};
 
-    lazy_static! {
-        static ref SUN: Sun = Sun {
-            sunrise: "2018-08-06 06:00:00"
-                .parse::<DateTime>()
-                .unwrap()
-                .to_zoned(TimeZone::system())
-                .unwrap(),
-            sunset: "2018-08-06 20:00:00"
-                .parse::<DateTime>()
-                .unwrap()
-                .to_zoned(TimeZone::system())
-                .unwrap(),
-        };
-    }
+    static SUN: LazyLock<Sun> = LazyLock::new(|| Sun {
+        sunrise: "2018-08-06 06:00:00"
+            .parse::<DateTime>()
+            .unwrap()
+            .to_zoned(TimeZone::system())
+            .unwrap(),
+        sunset: "2018-08-06 20:00:00"
+            .parse::<DateTime>()
+            .unwrap()
+            .to_zoned(TimeZone::system())
+            .unwrap(),
+    });
 
     mod time_period {
         use super::*;
@@ -292,12 +289,10 @@ mod tests {
         use super::*;
         use jiff::ToSpan;
 
-        lazy_static! {
-            static ref WALLPAPER: Wallpaper = Wallpaper {
-                day_images: NonZeroU32::new(13).unwrap(),
-                night_images: NonZeroU32::new(3).unwrap(),
-            };
-        }
+        static WALLPAPER: LazyLock<Wallpaper> = LazyLock::new(|| Wallpaper {
+            day_images: NonZeroU32::new(13).unwrap(),
+            night_images: NonZeroU32::new(3).unwrap(),
+        });
 
         #[test]
         fn sunrise() {
@@ -374,12 +369,10 @@ mod tests {
         use super::*;
         use jiff::{ToSpan, Unit};
 
-        lazy_static! {
-            static ref WALLPAPER: Wallpaper = Wallpaper {
-                day_images: NonZeroU32::new(3).unwrap(),
-                night_images: NonZeroU32::new(1).unwrap(),
-            };
-        }
+        static WALLPAPER: LazyLock<Wallpaper> = LazyLock::new(|| Wallpaper {
+            day_images: NonZeroU32::new(3).unwrap(),
+            night_images: NonZeroU32::new(1).unwrap(),
+        });
 
         #[test]
         fn before_sunrise() {
