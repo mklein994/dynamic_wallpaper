@@ -87,6 +87,10 @@ fn get_image(now: &Zoned, sun: &Sun, wallpaper: &Wallpaper) -> i64 {
     let day_image_count = f64::from(wallpaper.day_images.get());
     let night_image_count = f64::from(wallpaper.night_images.get());
 
+    let seconds_per_day_image = || length_of_daytime.total(Unit::Second).unwrap() / day_image_count;
+    let seconds_per_night_image =
+        || length_of_nighttime.total(Unit::Second).unwrap() / night_image_count;
+
     let time_period = TimePeriod::new(now, sun);
 
     let index = match time_period {
@@ -96,23 +100,16 @@ fn get_image(now: &Zoned, sun: &Sun, wallpaper: &Wallpaper) -> i64 {
                 .checked_sub((&time_until_sunrise, now))
                 .unwrap();
             let seconds_into_current_night = time_into_current_night.total(Unit::Second).unwrap();
-            let seconds_in_nighttime = length_of_nighttime.total(Unit::Second).unwrap();
 
-            let seconds_per_night_image = seconds_in_nighttime / night_image_count;
-            day_image_count + seconds_into_current_night / seconds_per_night_image
+            day_image_count + seconds_into_current_night / seconds_per_night_image()
         }
         TimePeriod::DayTime => {
             let time_since_sunrise = sunrise.until(now).unwrap();
-            let seconds_since_sunrise = time_since_sunrise.total(Unit::Second).unwrap();
-            let seconds_per_day_image =
-                length_of_daytime.total(Unit::Second).unwrap() / day_image_count;
-            seconds_since_sunrise / seconds_per_day_image
+            time_since_sunrise.total(Unit::Second).unwrap() / seconds_per_day_image()
         }
         TimePeriod::AfterSunset => {
             let seconds_since_sunset = sunset.until(now).unwrap().total(Unit::Second).unwrap();
-            let seconds_per_night_image =
-                length_of_nighttime.total(Unit::Second).unwrap() / night_image_count;
-            day_image_count + seconds_since_sunset / seconds_per_night_image
+            day_image_count + seconds_since_sunset / seconds_per_night_image()
         }
     };
 
