@@ -186,15 +186,20 @@ impl TimePeriod {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use jiff::civil::DateTime;
     use lazy_static::lazy_static;
     use std::num::NonZeroU32;
 
     lazy_static! {
         static ref SUN: Sun = Sun {
-            sunrise: jiff::civil::datetime(2018, 8, 6, 6, 0, 0, 0)
+            sunrise: "2018-08-06 06:00:00"
+                .parse::<DateTime>()
+                .unwrap()
                 .to_zoned(TimeZone::system())
                 .unwrap(),
-            sunset: jiff::civil::datetime(2018, 8, 6, 20, 0, 0, 0)
+            sunset: "2018-08-06 20:00:00"
+                .parse::<DateTime>()
+                .unwrap()
                 .to_zoned(TimeZone::system())
                 .unwrap(),
         };
@@ -206,7 +211,9 @@ mod tests {
         #[test]
         fn noon() {
             let time_period = TimePeriod::new(
-                &jiff::civil::datetime(2018, 8, 6, 12, 0, 0, 0)
+                &"2018-08-06 12:00:00"
+                    .parse::<jiff::civil::DateTime>()
+                    .unwrap()
                     .to_zoned(TimeZone::system())
                     .unwrap(),
                 &SUN,
@@ -217,7 +224,9 @@ mod tests {
         #[test]
         fn last_midnight() {
             let time_period = TimePeriod::new(
-                &jiff::civil::datetime(2018, 8, 6, 0, 0, 0, 0)
+                &"2018-08-06 00:00:00"
+                    .parse::<jiff::civil::DateTime>()
+                    .unwrap()
                     .to_zoned(TimeZone::system())
                     .unwrap(),
                 &SUN,
@@ -228,7 +237,9 @@ mod tests {
         #[test]
         fn next_midnight() {
             let time_period = TimePeriod::new(
-                &jiff::civil::datetime(2018, 8, 7, 0, 0, 0, 0)
+                &"2018-08-07 00:00:00"
+                    .parse::<jiff::civil::DateTime>()
+                    .unwrap()
                     .to_zoned(TimeZone::system())
                     .unwrap(),
                 &SUN,
