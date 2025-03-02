@@ -9,7 +9,8 @@ mod error;
 pub use self::config::{Config, Wallpaper};
 pub use self::error::Error;
 
-use jiff::{tz::TimeZone, Timestamp, ToSpan, Unit, Zoned};
+use jiff::SpanArithmetic;
+use jiff::{Timestamp, ToSpan, Unit, Zoned, tz::TimeZone};
 use std::path::PathBuf;
 
 /// Result type alias to handle errors.
@@ -42,36 +43,76 @@ fn get_config() -> Result<Config> {
     Ok(config)
 }
 
+/// Get the index of the image to use, based on the current time, sunrise/sunset times, and
+/// wallpaper configuration.
+///
+/// Chart of sun over time.
+///
+/// ```plain
+/// yesterday   00:00        today        00:00    tomorrow
+/// _____         |         _______         |         _____
+///      \        |        /       \        |        /
+///       \       |       /         \       |       /
+/// -------A------|------B-----------C------|------D------- horizon
+///         \     |     /             \     |     /
+///          \____|____/               \____|____/
+///               |                         |
+///
+///               |------o                     BeforeSunrise [midnight, sunrise)
+///                      |-----------|         DayTime [sunrise, sunset]
+///                                  o------o  AfterSunset (sunset, midnight)
+///
+///               10  11 1 2 3 4 5 6 7 8  9    image index
+///                      ^ ^ ^ ^ ^ ^ ^         7 daytime images (1-7)
+///               ^^  ^^               ^  ^    4 nighttime images (8-11)
+/// ```
+///
+/// Legend:
+/// - A: last sunset
+/// - B: sunrise
+/// - C: sunset
+/// - D: next sunrise
+///
+/// The sunrise and sunset times are calculated for the current day, and given to the `sun`
+/// ([`Sun`]) parameter. Since we don't know the time of the previous sunset (A) or the next
+/// sunrise (B), we have to make an approximation: assuming the day is 24 hours long, get the
+/// difference of 24h - daylight. This becomes our nighttime duration.
 fn get_image(now: &Zoned, sun: &Sun, wallpaper: &Wallpaper) -> i64 {
-    let (sunrise, sunset) = (&sun.sunrise, &sun.sunset);
-    let day_duration = sunrise.until(sunset).unwrap();
-    let night_duration = 1.day().checked_sub((day_duration, sunrise)).unwrap();
-
-    let day_size = f64::from(wallpaper.day_images.get());
-    let night_size = f64::from(wallpaper.night_images.get());
+    let Sun { sunrise, sunset } = sun;
+    let length_of_daytime = sunrise.until(sunset).unwrap();
+    let length_of_nighttime = 1
+        .day()
+        .checked_sub(SpanArithmetic::from(length_of_daytime).days_are_24_hours())
+        .unwrap();
+    let day_image_count = f64::from(wallpaper.day_images.get());
+    let night_image_count = f64::from(wallpaper.night_images.get());
 
     let time_period = TimePeriod::new(now, sun);
 
     let index = match time_period {
         TimePeriod::BeforeSunrise => {
-            day_size
-                + now
-                    .tomorrow()
-                    .unwrap()
-                    .since(sunset)
-                    .unwrap()
-                    .total(Unit::Second)
-                    .unwrap()
-                    / (night_duration.total(Unit::Second).unwrap() / night_size)
+            let time_until_sunrise = now.until(sunrise).unwrap();
+            let time_into_current_night = length_of_nighttime
+                .checked_sub((&time_until_sunrise, now))
+                .unwrap();
+            let seconds_into_current_night = time_into_current_night.total(Unit::Second).unwrap();
+            let seconds_in_nighttime = length_of_nighttime.total(Unit::Second).unwrap();
+
+            let seconds_per_night_image = seconds_in_nighttime / night_image_count;
+            day_image_count + seconds_into_current_night / seconds_per_night_image
         }
         TimePeriod::DayTime => {
-            now.since(sunrise).unwrap().total(Unit::Second).unwrap()
-                / (day_duration.total(Unit::Second).unwrap() / day_size)
+            let time_since_sunrise = sunrise.until(now).unwrap();
+            let seconds_since_sunrise = time_since_sunrise.total(Unit::Second).unwrap();
+            let seconds_per_day_image =
+                length_of_daytime.total(Unit::Second).unwrap() / day_image_count;
+            seconds_since_sunrise / seconds_per_day_image
         }
         TimePeriod::AfterSunset => {
-            day_size
-                + now.since(sunset).unwrap().total(Unit::Second).unwrap()
-                    / (night_duration.total(Unit::Second).unwrap() / night_size)
+            let seconds_since_sunset = sunset.until(now).unwrap().total(Unit::Second).unwrap();
+            let seconds_per_night_image =
+                length_of_nighttime.total(Unit::Second).unwrap() / night_image_count;
+            day_image_count + seconds_since_sunset / seconds_per_night_image
         }
     };
 
