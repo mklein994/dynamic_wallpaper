@@ -1,6 +1,6 @@
 [package]
 name = "dynamic_wallpaper"
-version = "0.2.0"
+version = "0.2.1"
 description = "Get the wallpaper image index to use based on the position of the sun"
 edition = "2024"
 repository = "https://github.com/mklein994/dynamic_wallpaper"
@@ -15,4 +15,4 @@ jiff = { version = "0.2.1", features = ["serde"] }
 dirs = "7.0.0"
 serde = { version = "1.0.203", features = ["derive"] }
 sunrise = { git = "https://github.com/mklein994/rust-sunrise", branch = "feature/add-jiff-support", default-features = false, features = ["std", "jiff"] }
-toml = "0.8.14"
+toml = "1.1.8"
