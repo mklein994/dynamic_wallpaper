@@ -10,7 +10,7 @@ pub use self::config::{Config, Wallpaper};
 pub use self::error::Error;
 
 use jiff::SpanArithmetic;
-use jiff::{Timestamp, ToSpan, Unit, Zoned, tz::TimeZone};
+use jiff::{ToSpan, Unit, Zoned, tz::TimeZone};
 use std::path::PathBuf;
 
 /// Result type alias to handle errors.
@@ -130,15 +130,15 @@ impl Sun {
     /// Get the time of sunrise and sunset depending on the date and location.
     fn new(date: &Zoned, lat: f64, lon: f64) -> Self {
         let (sunrise, sunset) = {
-            let (sunrise, sunset) =
-                sunrise::sunrise_sunset(lat, lon, date.year(), date.month(), date.day());
+            let solar_day =
+                sunrise::SolarDay::new(sunrise::Coordinates::new(lat, lon).unwrap(), date.into());
+            let (sunrise, sunset) = (
+                solar_day.event_time(sunrise::SolarEvent::Sunrise).unwrap(),
+                solar_day.event_time(sunrise::SolarEvent::Sunset).unwrap(),
+            );
             (
-                Timestamp::new(sunrise, 0)
-                    .unwrap()
-                    .to_zoned(TimeZone::system()),
-                Timestamp::new(sunset, 0)
-                    .unwrap()
-                    .to_zoned(TimeZone::system()),
+                sunrise.to_zoned(TimeZone::system()),
+                sunset.to_zoned(TimeZone::system()),
             )
         };
 
